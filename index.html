@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nokia 3310 Snake</title>
+    <title>polycode.sh</title>
     <style>
         * {
             margin: 0;
@@ -61,7 +61,7 @@
         
 
         
-        #startScreen, #gameOverScreen {
+        #startScreen, #gameOverScreen, #leaderboardScreen {
             position: absolute;
             top: 0;
             left: 0;
@@ -75,6 +75,7 @@
             color: #2d4a2c;
             text-align: center;
             padding: 20px;
+            overflow-y: auto;
         }
         
         #canvasContainer {
@@ -135,6 +136,40 @@
             transform: scale(0.98);
         }
         
+        button.secondaryBtn {
+            background: #4a6a45;
+            border: 3px solid #2d4a2c;
+            padding: 10px 30px;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        
+        .leaderboardEntry {
+            background: #7d9b77;
+            border: 2px solid #2d4a2c;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 350px;
+            font-size: 16px;
+        }
+        
+        .leaderboardEntry.top3 {
+            background: #6a8a64;
+            border-width: 3px;
+            font-weight: bold;
+        }
+        
+        #leaderboardList {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px 0;
+        }
+        
         #finalScore {
             font-size: 28px;
             margin: 15px 0;
@@ -164,6 +199,14 @@
                 padding: 12px 30px; 
                 font-size: 20px; 
             }
+            button.secondaryBtn {
+                padding: 8px 20px;
+                font-size: 16px;
+            }
+            .leaderboardEntry {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
         }
     </style>
 </head>
@@ -181,11 +224,19 @@
                     </div>
                     <input type="text" id="usernameInput" placeholder="Enter your name" maxlength="15">
                     <button class="gameBtn" id="startBtn">START</button>
+                    <button class="gameBtn secondaryBtn" id="viewLeaderboardBtn">LEADERBOARD</button>
+                </div>
+                
+                <div id="leaderboardScreen" style="display: none;">
+                    <h1>LEADERBOARD</h1>
+                    <div id="leaderboardList"></div>
+                    <button class="gameBtn" id="closeLeaderboardBtn">BACK</button>
                 </div>
                 
                 <div id="gameOverScreen" style="display: none;">
                     <div id="finalScore">Score: 0</div>
                     <button class="gameBtn" id="restartBtn">RESTART</button>
+                    <button class="gameBtn secondaryBtn" id="viewLeaderboardBtn2">LEADERBOARD</button>
                 </div>
             </div>
             
@@ -215,6 +266,7 @@
         let highScore = 0;
         let globalHighScore = 0;
         let globalHighScoreUsername = '';
+        let leaderboard = [];
         let currentUsername = '';
         let snake = [];
         let food = {};
@@ -229,31 +281,46 @@
             food: '#2d4a2c'
         };
         
-        // Load global high score
-        async function loadGlobalHighScore() {
+        // Load leaderboard
+        async function loadLeaderboard() {
             try {
-                const result = await window.storage.get('snake-global-highscore', true);
+                const result = await window.storage.get('snake-leaderboard', true);
                 if (result && result.value) {
-                    const data = JSON.parse(result.value);
-                    globalHighScore = data.score || 0;
-                    globalHighScoreUsername = data.username || 'Anonymous';
-                    updateGlobalScoreDisplay();
+                    leaderboard = JSON.parse(result.value);
+                    if (leaderboard.length > 0) {
+                        globalHighScore = leaderboard[0].score;
+                        globalHighScoreUsername = leaderboard[0].username;
+                        updateGlobalScoreDisplay();
+                    }
                 }
             } catch (error) {
-                console.log('Could not load global high score');
+                console.log('Could not load leaderboard:', error);
+                leaderboard = [];
             }
         }
         
-        // Save global high score
-        async function saveGlobalHighScore(score, username) {
+        // Save leaderboard
+        async function saveToLeaderboard(score, username) {
             try {
-                const data = JSON.stringify({ score, username });
-                await window.storage.set('snake-global-highscore', data, true);
-                globalHighScore = score;
-                globalHighScoreUsername = username;
+                // Add new score
+                leaderboard.push({ score, username, date: Date.now() });
+                
+                // Sort by score (descending)
+                leaderboard.sort((a, b) => b.score - a.score);
+                
+                // Keep only top 10
+                leaderboard = leaderboard.slice(0, 10);
+                
+                // Update global high score
+                globalHighScore = leaderboard[0].score;
+                globalHighScoreUsername = leaderboard[0].username;
+                
+                // Save to storage
+                await window.storage.set('snake-leaderboard', JSON.stringify(leaderboard), true);
+                
                 updateGlobalScoreDisplay();
             } catch (error) {
-                console.log('Could not save global high score');
+                console.log('Could not save to leaderboard:', error);
             }
         }
         
@@ -266,8 +333,47 @@
             }
         }
         
+        // Display leaderboard
+        function displayLeaderboard() {
+            const list = document.getElementById('leaderboardList');
+            list.innerHTML = '';
+            
+            if (leaderboard.length === 0) {
+                list.innerHTML = '<div style="padding: 20px;">No scores yet!</div>';
+                return;
+            }
+            
+            leaderboard.forEach((entry, index) => {
+                const div = document.createElement('div');
+                div.className = 'leaderboardEntry' + (index < 3 ? ' top3' : '');
+                div.innerHTML = `
+                    <span>#${index + 1} ${entry.username}</span>
+                    <span>${entry.score}</span>
+                `;
+                list.appendChild(div);
+            });
+        }
+        
+        // Show leaderboard screen
+        function showLeaderboard() {
+            displayLeaderboard();
+            document.getElementById('leaderboardScreen').style.display = 'flex';
+            document.getElementById('startScreen').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+        }
+        
+        // Hide leaderboard screen
+        function hideLeaderboard() {
+            document.getElementById('leaderboardScreen').style.display = 'none';
+            if (gameState === 'start') {
+                document.getElementById('startScreen').style.display = 'flex';
+            } else if (gameState === 'gameOver') {
+                document.getElementById('gameOverScreen').style.display = 'flex';
+            }
+        }
+        
         // Load on page load
-        loadGlobalHighScore();
+        loadLeaderboard();
         
         function initGame() {
             snake = [
@@ -368,10 +474,16 @@
                 highScoreEl.textContent = highScore;
             }
             
-            // Update global high score
-            if (score > globalHighScore) {
+            // Check if world record
+            const isWorldRecord = score > globalHighScore;
+            
+            // Save to leaderboard
+            if (score > 0) {
+                saveToLeaderboard(score, currentUsername);
+            }
+            
+            if (isWorldRecord) {
                 message = `NEW WORLD RECORD!<br>${currentUsername}!`;
-                saveGlobalHighScore(score, currentUsername);
             }
             
             finalScoreEl.innerHTML = `<div style="margin-bottom: 10px;">${message}</div>Score: ${score}`;
@@ -417,6 +529,11 @@
                 startGame();
             }
         });
+        
+        // Leaderboard buttons
+        document.getElementById('viewLeaderboardBtn').addEventListener('click', showLeaderboard);
+        document.getElementById('viewLeaderboardBtn2').addEventListener('click', showLeaderboard);
+        document.getElementById('closeLeaderboardBtn').addEventListener('click', hideLeaderboard);
         
         document.getElementById('restartBtn').addEventListener('click', restartGame);
         document.getElementById('restartBtn').addEventListener('touchend', (e) => {
