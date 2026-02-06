@@ -294,16 +294,28 @@
             requestAnimationFrame(gameLoop);
         }
         
-        document.getElementById('startBtn').addEventListener('click', () => {
+        function startGame() {
             startScreen.style.display = 'none';
             gameState = 'playing';
             initGame();
-        });
+        }
         
-        document.getElementById('restartBtn').addEventListener('click', () => {
+        function restartGame() {
             gameOverScreen.style.display = 'none';
             gameState = 'playing';
             initGame();
+        }
+        
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('startBtn').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            startGame();
+        });
+        
+        document.getElementById('restartBtn').addEventListener('click', restartGame);
+        document.getElementById('restartBtn').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            restartGame();
         });
         
         document.addEventListener('keydown', (e) => {
@@ -329,12 +341,12 @@
             }
         });
         
-        canvas.addEventListener('click', (e) => {
+        function handleDirectionInput(clientX, clientY) {
             if (gameState !== 'playing') return;
             
             const rect = canvas.getBoundingClientRect();
-            const clickX = e.clientX - rect.left;
-            const clickY = e.clientY - rect.top;
+            const clickX = clientX - rect.left;
+            const clickY = clientY - rect.top;
             
             const canvasX = (clickX / rect.width) * canvas.width;
             const canvasY = (clickY / rect.height) * canvas.height;
@@ -358,6 +370,17 @@
                 } else {
                     changeDirection(0, -1);
                 }
+            }
+        }
+        
+        canvas.addEventListener('click', (e) => {
+            handleDirectionInput(e.clientX, e.clientY);
+        });
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (e.touches.length > 0) {
+                handleDirectionInput(e.touches[0].clientX, e.touches[0].clientY);
             }
         });
         
