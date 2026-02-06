@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>polycode.sh</title>
+    <title>Nokia 3310 Snake</title>
     <style>
         * {
             margin: 0;
@@ -45,11 +45,18 @@
         
         #scoreDisplay {
             color: #2d4a2c;
-            font-size: 24px;
+            font-size: 20px;
             margin-top: 15px;
             display: flex;
             justify-content: space-between;
             font-weight: bold;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        #scoreDisplay > span {
+            flex: 1;
+            min-width: 150px;
         }
         
 
@@ -85,6 +92,30 @@
             line-height: 1.6;
         }
         
+        #usernameInput {
+            background: #7d9b77;
+            border: 3px solid #2d4a2c;
+            color: #2d4a2c;
+            padding: 12px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            width: 250px;
+            max-width: 90%;
+        }
+        
+        #usernameInput::placeholder {
+            color: #4a6a45;
+        }
+        
+        #usernameInput:focus {
+            outline: none;
+            border-color: #1a2a1a;
+        }
+        
         button.gameBtn {
             background: #2d4a2c;
             border: 3px solid #1a2a1a;
@@ -105,9 +136,10 @@
         }
         
         #finalScore {
-            font-size: 32px;
+            font-size: 28px;
             margin: 15px 0;
             font-weight: bold;
+            line-height: 1.4;
         }
         
         @media (max-width: 600px) {
@@ -116,7 +148,18 @@
             }
             h1 { font-size: 32px; }
             .instructions { font-size: 14px; }
-            #scoreDisplay { font-size: 18px; }
+            #usernameInput {
+                font-size: 16px;
+                padding: 10px 15px;
+            }
+            #scoreDisplay { 
+                font-size: 16px;
+                gap: 8px;
+            }
+            #scoreDisplay > span {
+                min-width: 120px;
+            }
+            #finalScore { font-size: 22px; }
             button.gameBtn { 
                 padding: 12px 30px; 
                 font-size: 20px; 
@@ -136,11 +179,11 @@
                         Desktop: Arrow Keys<br>
                         Mobile: Tap Direction
                     </div>
+                    <input type="text" id="usernameInput" placeholder="Enter your name" maxlength="15">
                     <button class="gameBtn" id="startBtn">START</button>
                 </div>
                 
                 <div id="gameOverScreen" style="display: none;">
-                    <h1>GAME OVER</h1>
                     <div id="finalScore">Score: 0</div>
                     <button class="gameBtn" id="restartBtn">RESTART</button>
                 </div>
@@ -148,7 +191,8 @@
             
             <div id="scoreDisplay">
                 <span>Score: <span id="score">0</span></span>
-                <span>High: <span id="highScore">0</span></span>
+                <span>Your Best: <span id="highScore">0</span></span>
+                <span>World Record: <span id="globalHighScore">0</span></span>
             </div>
         </div>
     </div>
@@ -160,6 +204,7 @@
         const gameOverScreen = document.getElementById('gameOverScreen');
         const scoreEl = document.getElementById('score');
         const highScoreEl = document.getElementById('highScore');
+        const globalHighScoreEl = document.getElementById('globalHighScore');
         const finalScoreEl = document.getElementById('finalScore');
         
         const gridSize = 20;
@@ -168,6 +213,9 @@
         let gameState = 'start';
         let score = 0;
         let highScore = 0;
+        let globalHighScore = 0;
+        let globalHighScoreUsername = '';
+        let currentUsername = '';
         let snake = [];
         let food = {};
         let dx = 0;
@@ -180,6 +228,46 @@
             snake: '#2d4a2c',
             food: '#2d4a2c'
         };
+        
+        // Load global high score
+        async function loadGlobalHighScore() {
+            try {
+                const result = await window.storage.get('snake-global-highscore', true);
+                if (result && result.value) {
+                    const data = JSON.parse(result.value);
+                    globalHighScore = data.score || 0;
+                    globalHighScoreUsername = data.username || 'Anonymous';
+                    updateGlobalScoreDisplay();
+                }
+            } catch (error) {
+                console.log('Could not load global high score');
+            }
+        }
+        
+        // Save global high score
+        async function saveGlobalHighScore(score, username) {
+            try {
+                const data = JSON.stringify({ score, username });
+                await window.storage.set('snake-global-highscore', data, true);
+                globalHighScore = score;
+                globalHighScoreUsername = username;
+                updateGlobalScoreDisplay();
+            } catch (error) {
+                console.log('Could not save global high score');
+            }
+        }
+        
+        // Update global score display
+        function updateGlobalScoreDisplay() {
+            if (globalHighScore > 0) {
+                globalHighScoreEl.textContent = `${globalHighScore} (${globalHighScoreUsername})`;
+            } else {
+                globalHighScoreEl.textContent = '0';
+            }
+        }
+        
+        // Load on page load
+        loadGlobalHighScore();
         
         function initGame() {
             snake = [
@@ -272,11 +360,21 @@
         
         function endGame() {
             gameState = 'gameOver';
+            let message = 'GAME OVER';
+            
+            // Update personal high score
             if (score > highScore) {
                 highScore = score;
                 highScoreEl.textContent = highScore;
             }
-            finalScoreEl.textContent = `Score: ${score}`;
+            
+            // Update global high score
+            if (score > globalHighScore) {
+                message = `NEW WORLD RECORD!<br>${currentUsername}!`;
+                saveGlobalHighScore(score, currentUsername);
+            }
+            
+            finalScoreEl.innerHTML = `<div style="margin-bottom: 10px;">${message}</div>Score: ${score}`;
             gameOverScreen.style.display = 'flex';
         }
         
@@ -295,6 +393,8 @@
         }
         
         function startGame() {
+            const usernameInput = document.getElementById('usernameInput');
+            currentUsername = usernameInput.value.trim() || 'Anonymous';
             startScreen.style.display = 'none';
             gameState = 'playing';
             initGame();
@@ -310,6 +410,12 @@
         document.getElementById('startBtn').addEventListener('touchend', (e) => {
             e.preventDefault();
             startGame();
+        });
+        
+        document.getElementById('usernameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                startGame();
+            }
         });
         
         document.getElementById('restartBtn').addEventListener('click', restartGame);
