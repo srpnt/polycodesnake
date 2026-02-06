@@ -59,8 +59,6 @@
             min-width: 150px;
         }
         
-
-        
         #startScreen, #gameOverScreen, #leaderboardScreen {
             position: absolute;
             top: 0;
@@ -229,7 +227,7 @@
                 
                 <div id="leaderboardScreen" style="display: none;">
                     <h1>LEADERBOARD</h1>
-                    <div id="leaderboardList"></div>
+                    <div id="leaderboardList">Loading...</div>
                     <button class="gameBtn" id="closeLeaderboardBtn">BACK</button>
                 </div>
                 
@@ -247,12 +245,50 @@
             </div>
         </div>
     </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     
     <script>
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "firebase/app";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+        apiKey: "AIzaSyAOUT4Bg-ts4bbfSlOE7-w4TepRCDS4tlI",
+        authDomain: "snek-32231.firebaseapp.com",
+        databaseURL: "https://snek-32231-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "snek-32231",
+        storageBucket: "snek-32231.firebasestorage.app",
+        messagingSenderId: "92642891479",
+        appId: "1:92642891479:web:5b5a334b5b113e5d9cc292"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        
+        // Initialize Firebase
+        let database = null;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            alert('Please configure Firebase. See console for details.');
+        }
+        
+        // ============================================
+        // GAME CODE
+        // ============================================
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const startScreen = document.getElementById('startScreen');
         const gameOverScreen = document.getElementById('gameOverScreen');
+        const leaderboardScreen = document.getElementById('leaderboardScreen');
         const scoreEl = document.getElementById('score');
         const highScoreEl = document.getElementById('highScore');
         const globalHighScoreEl = document.getElementById('globalHighScore');
@@ -281,56 +317,52 @@
             food: '#2d4a2c'
         };
         
-        // Load leaderboard
+        // ============================================
+        // FIREBASE FUNCTIONS
+        // ============================================
+        
+        // Load leaderboard from Firebase
         async function loadLeaderboard() {
+            if (!database) return;
+            
             try {
-                const result = await window.storage.get('snake-leaderboard', true);
-                if (result && result.value) {
-                    leaderboard = JSON.parse(result.value);
+                const snapshot = await database.ref('leaderboard').orderByChild('score').limitToLast(10).once('value');
+                const data = snapshot.val();
+                
+                if (data) {
+                    leaderboard = Object.values(data).sort((a, b) => b.score - a.score);
+                    
                     if (leaderboard.length > 0) {
                         globalHighScore = leaderboard[0].score;
                         globalHighScoreUsername = leaderboard[0].username;
                         updateGlobalScoreDisplay();
                     }
+                } else {
+                    leaderboard = [];
                 }
             } catch (error) {
-                console.log('Could not load leaderboard:', error);
-                leaderboard = [];
+                console.error('Error loading leaderboard:', error);
             }
         }
         
-        // Save leaderboard
+        // Save score to Firebase
         async function saveToLeaderboard(score, username) {
+            if (!database || score === 0) return;
+            
             try {
-                // Reload latest leaderboard from storage first
-                const result = await window.storage.get('snake-leaderboard', true);
-                let currentLeaderboard = [];
-                if (result && result.value) {
-                    currentLeaderboard = JSON.parse(result.value);
-                }
+                const newScoreRef = database.ref('leaderboard').push();
+                await newScoreRef.set({
+                    score: score,
+                    username: username,
+                    timestamp: Date.now()
+                });
                 
-                // Add new score
-                currentLeaderboard.push({ score, username, date: Date.now() });
+                // Reload leaderboard after saving
+                await loadLeaderboard();
                 
-                // Sort by score (descending)
-                currentLeaderboard.sort((a, b) => b.score - a.score);
-                
-                // Keep only top 10
-                currentLeaderboard = currentLeaderboard.slice(0, 10);
-                
-                // Save to storage
-                await window.storage.set('snake-leaderboard', JSON.stringify(currentLeaderboard), true);
-                
-                // Update local leaderboard
-                leaderboard = currentLeaderboard;
-                
-                // Update global high score
-                globalHighScore = leaderboard[0].score;
-                globalHighScoreUsername = leaderboard[0].username;
-                
-                updateGlobalScoreDisplay();
+                console.log('Score saved to Firebase');
             } catch (error) {
-                console.log('Could not save to leaderboard:', error);
+                console.error('Error saving score:', error);
             }
         }
         
@@ -366,33 +398,29 @@
         
         // Show leaderboard screen
         async function showLeaderboard() {
-            // Reload latest leaderboard before displaying
             await loadLeaderboard();
             displayLeaderboard();
-            document.getElementById('leaderboardScreen').style.display = 'flex';
-            document.getElementById('startScreen').style.display = 'none';
-            document.getElementById('gameOverScreen').style.display = 'none';
+            leaderboardScreen.style.display = 'flex';
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
         }
         
         // Hide leaderboard screen
         function hideLeaderboard() {
-            document.getElementById('leaderboardScreen').style.display = 'none';
+            leaderboardScreen.style.display = 'none';
             if (gameState === 'start') {
-                document.getElementById('startScreen').style.display = 'flex';
+                startScreen.style.display = 'flex';
             } else if (gameState === 'gameOver') {
-                document.getElementById('gameOverScreen').style.display = 'flex';
+                gameOverScreen.style.display = 'flex';
             }
         }
         
         // Load on page load
         loadLeaderboard();
         
-        // Refresh global high score periodically
-        setInterval(async () => {
-            if (gameState === 'playing') {
-                await loadLeaderboard();
-            }
-        }, 5000); // Check every 5 seconds
+        // ============================================
+        // GAME LOGIC
+        // ============================================
         
         function initGame() {
             snake = [
@@ -486,19 +514,15 @@
         async function endGame() {
             gameState = 'gameOver';
             
-            // Update personal high score
             if (score > highScore) {
                 highScore = score;
                 highScoreEl.textContent = highScore;
             }
             
-            // Check if world record BEFORE saving
             const isWorldRecord = score > globalHighScore;
             
-            // Save to leaderboard (this will update globalHighScore)
-            if (score > 0) {
-                await saveToLeaderboard(score, currentUsername);
-            }
+            // Save to Firebase
+            await saveToLeaderboard(score, currentUsername);
             
             let message = 'GAME OVER';
             if (isWorldRecord && score > 0) {
@@ -537,6 +561,10 @@
             initGame();
         }
         
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        
         document.getElementById('startBtn').addEventListener('click', startGame);
         document.getElementById('startBtn').addEventListener('touchend', (e) => {
             e.preventDefault();
@@ -549,16 +577,15 @@
             }
         });
         
-        // Leaderboard buttons
-        document.getElementById('viewLeaderboardBtn').addEventListener('click', showLeaderboard);
-        document.getElementById('viewLeaderboardBtn2').addEventListener('click', showLeaderboard);
-        document.getElementById('closeLeaderboardBtn').addEventListener('click', hideLeaderboard);
-        
         document.getElementById('restartBtn').addEventListener('click', restartGame);
         document.getElementById('restartBtn').addEventListener('touchend', (e) => {
             e.preventDefault();
             restartGame();
         });
+        
+        document.getElementById('viewLeaderboardBtn').addEventListener('click', showLeaderboard);
+        document.getElementById('viewLeaderboardBtn2').addEventListener('click', showLeaderboard);
+        document.getElementById('closeLeaderboardBtn').addEventListener('click', hideLeaderboard);
         
         document.addEventListener('keydown', (e) => {
             if (gameState !== 'playing') return;
