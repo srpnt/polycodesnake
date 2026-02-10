@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>polycode.sh</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+        }
+        
+        #gameContainer {
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        #gameScreen {
+            background: #9cb895;
+            border: 8px solid #2a2a2a;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+        
+        #gameCanvas {
+            width: 100%;
+            height: auto;
+            display: block;
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            border: 3px solid #2d4a2c;
+        }
+        
+        #scoreDisplay {
+            color: #2d4a2c;
+            font-size: 20px;
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        #scoreDisplay > span {
+            flex: 1;
+            min-width: 150px;
+        }
+        
+        #startScreen, #gameOverScreen, #leaderboardScreen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(156, 184, 149, 0.95);
+            color: #2d4a2c;
+            text-align: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        
+        #canvasContainer {
+            position: relative;
+        }
+        
+        h1 {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .instructions {
+            font-size: 18px;
+            margin: 15px 0;
+            line-height: 1.6;
+        }
+        
+        #usernameInput {
+            background: #7d9b77;
+            border: 3px solid #2d4a2c;
+            color: #2d4a2c;
+            padding: 12px 20px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+            width: 250px;
+            max-width: 90%;
+        }
+        
+        #usernameInput::placeholder {
+            color: #4a6a45;
+        }
+        
+        #usernameInput:focus {
+            outline: none;
+            border-color: #1a2a1a;
+        }
+        
+        button.gameBtn {
+            background: #2d4a2c;
+            border: 3px solid #1a2a1a;
+            color: #9cb895;
+            padding: 15px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            transition: all 0.2s;
+        }
+        
+        button.gameBtn:active {
+            background: #1a2a1a;
+            transform: scale(0.98);
+        }
+        
+        button.secondaryBtn {
+            background: #4a6a45;
+            border: 3px solid #2d4a2c;
+            padding: 10px 30px;
+            font-size: 18px;
+            margin-top: 10px;
+        }
+        
+        .leaderboardEntry {
+            background: #7d9b77;
+            border: 2px solid #2d4a2c;
+            padding: 10px 15px;
+            margin: 5px 0;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 350px;
+            font-size: 16px;
+        }
+        
+        .leaderboardEntry.top3 {
+            background: #6a8a64;
+            border-width: 3px;
+            font-weight: bold;
+        }
+        
+        #leaderboardList {
+            width: 100%;
+            max-width: 400px;
+            margin: 20px 0;
+        }
+        
+        #finalScore {
+            font-size: 28px;
+            margin: 15px 0;
+            font-weight: bold;
+            line-height: 1.4;
+        }
+        
+        @media (max-width: 600px) {
+            #gameScreen {
+                padding: 15px;
+            }
+            h1 { font-size: 32px; }
+            .instructions { font-size: 14px; }
+            #usernameInput {
+                font-size: 16px;
+                padding: 10px 15px;
+            }
+            #scoreDisplay { 
+                font-size: 16px;
+                gap: 8px;
+            }
+            #scoreDisplay > span {
+                min-width: 120px;
+            }
+            #finalScore { font-size: 22px; }
+            button.gameBtn { 
+                padding: 12px 30px; 
+                font-size: 20px; 
+            }
+            button.secondaryBtn {
+                padding: 8px 20px;
+                font-size: 16px;
+            }
+            .leaderboardEntry {
+                font-size: 14px;
+                padding: 8px 12px;
+            }
+        }
+    </style>
+    </head>
+    <div id="gameContainer">
+        <div id="gameScreen">
+            <div id="canvasContainer">
+                <canvas id="gameCanvas" width="400" height="400"></canvas>
+                
+                <div id="startScreen">
+                    <h1>SNAKE</h1>
+                    <div class="instructions">
+                        Desktop: Arrow Keys<br>
+                        Mobile: Tap Direction
+                    </div>
+                    <input type="text" id="usernameInput" placeholder="Enter your name" maxlength="15">
+                    <button class="gameBtn" id="startBtn">START</button>
+                    <button class="gameBtn secondaryBtn" id="viewLeaderboardBtn">LEADERBOARD</button>
+                </div>
+                
+                <div id="leaderboardScreen" style="display: none;">
+                    <h1>LEADERBOARD</h1>
+                    <div id="leaderboardList">Loading...</div>
+                    <button class="gameBtn" id="closeLeaderboardBtn">BACK</button>
+                </div>
+                
+                <div id="gameOverScreen" style="display: none;">
+                    <div id="finalScore">Score: 0</div>
+                    <button class="gameBtn" id="restartBtn">RESTART</button>
+                    <button class="gameBtn secondaryBtn" id="viewLeaderboardBtn2">LEADERBOARD</button>
+                </div>
+            </div>
+            
+            <div id="scoreDisplay">
+                <span>Score: <span id="score">0</span></span>
+                <span>Your Best: <span id="highScore">0</span></span>
+                <span>World Record: <span id="globalHighScore">0</span></span>
+            </div>
+        </div>
+    </div>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    
+    <script>
+        // ============================================
+        // FIREBASE CONFIGURATION
+        // ============================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyAOUT4Bg-ts4bbfSlOE7-w4TepRCDS4tlI",
+            authDomain: "snek-32231.firebaseapp.com",
+            databaseURL: "https://snek-32231-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "snek-32231",
+            storageBucket: "snek-32231.firebasestorage.app",
+            messagingSenderId: "92642891479",
+            appId: "1:92642891479:web:5b5a334b5b113e5d9cc292"
+        };
+        
+        // Initialize Firebase
+        let database = null;
+        try {
+            firebase.initializeApp(firebaseConfig);
+            database = firebase.database();
+            console.log('Firebase initialized successfully');
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            alert('Please configure Firebase. See console for details.');
+        }
+        
+        // ============================================
+        // GAME CODE
+        // ============================================
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const startScreen = document.getElementById('startScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const leaderboardScreen = document.getElementById('leaderboardScreen');
+        const scoreEl = document.getElementById('score');
+        const highScoreEl = document.getElementById('highScore');
+        const globalHighScoreEl = document.getElementById('globalHighScore');
+        const finalScoreEl = document.getElementById('finalScore');
+        
+        const gridSize = 20;
+        const tileCount = canvas.width / gridSize;
+        
+        let gameState = 'start';
+        let score = 0;
+        let highScore = 0;
+        let globalHighScore = 0;
+        let globalHighScoreUsername = '';
+        let leaderboard = [];
+        let currentUsername = '';
+        let snake = [];
+        let food = {};
+        let dx = 0;
+        let dy = 0;
+        let gameSpeed = 150;
+        let lastUpdate = 0;
+        
+        const COLORS = {
+            bg: '#9cb895',
+            snake: '#2d4a2c',
+            food: '#2d4a2c'
+        };
+        
+        // ============================================
+        // FIREBASE FUNCTIONS
+        // ============================================
+        
+        // Load leaderboard from Firebase
+        async function loadLeaderboard() {
+            if (!database) return;
+            
+            try {
+                const snapshot = await database.ref('leaderboard').orderByChild('score').limitToLast(10).once('value');
+                const data = snapshot.val();
+                
+                if (data) {
+                    leaderboard = Object.values(data).sort((a, b) => b.score - a.score);
+                    
+                    if (leaderboard.length > 0) {
+                        globalHighScore = leaderboard[0].score;
+                        globalHighScoreUsername = leaderboard[0].username;
+                        updateGlobalScoreDisplay();
+                    }
+                } else {
+                    leaderboard = [];
+                }
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+            }
+        }
+        
+        // Save score to Firebase
+        async function saveToLeaderboard(score, username) {
+            if (!database || score === 0) return;
+            
+            try {
+                const newScoreRef = database.ref('leaderboard').push();
+                await newScoreRef.set({
+                    score: score,
+                    username: username,
+                    timestamp: Date.now()
+                });
+                
+                // Reload leaderboard after saving
+                await loadLeaderboard();
+                
+                console.log('Score saved to Firebase');
+            } catch (error) {
+                console.error('Error saving score:', error);
+            }
+        }
+        
+        // Update global score display
+        function updateGlobalScoreDisplay() {
+            if (globalHighScore > 0) {
+                globalHighScoreEl.textContent = `${globalHighScore} (${globalHighScoreUsername})`;
+            } else {
+                globalHighScoreEl.textContent = '0';
+            }
+        }
+        
+        // Display leaderboard
+        function displayLeaderboard() {
+            const list = document.getElementById('leaderboardList');
+            list.innerHTML = '';
+            
+            if (leaderboard.length === 0) {
+                list.innerHTML = '<div style="padding: 20px;">No scores yet!</div>';
+                return;
+            }
+            
+            leaderboard.forEach((entry, index) => {
+                const div = document.createElement('div');
+                div.className = 'leaderboardEntry' + (index < 3 ? ' top3' : '');
+                div.innerHTML = `
+                    <span>#${index + 1} ${entry.username}</span>
+                    <span>${entry.score}</span>
+                `;
+                list.appendChild(div);
+            });
+        }
+        
+        // Show leaderboard screen
+        async function showLeaderboard() {
+            await loadLeaderboard();
+            displayLeaderboard();
+            leaderboardScreen.style.display = 'flex';
+            startScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+        }
+        
+        // Hide leaderboard screen
+        function hideLeaderboard() {
+            leaderboardScreen.style.display = 'none';
+            if (gameState === 'start') {
+                startScreen.style.display = 'flex';
+            } else if (gameState === 'gameOver') {
+                gameOverScreen.style.display = 'flex';
+            }
+        }
+        
+        // Load on page load
+        loadLeaderboard();
+        
+        // ============================================
+        // GAME LOGIC
+        // ============================================
+        
+        function initGame() {
+            snake = [
+                {x: 10, y: 10},
+                {x: 9, y: 10},
+                {x: 8, y: 10}
+            ];
+            dx = 1;
+            dy = 0;
+            score = 0;
+            gameSpeed = 150;
+            scoreEl.textContent = '0';
+            spawnFood();
+        }
+        
+        function spawnFood() {
+            food = {
+                x: Math.floor(Math.random() * tileCount),
+                y: Math.floor(Math.random() * tileCount)
+            };
+            
+            while (snake.some(segment => segment.x === food.x && segment.y === food.y)) {
+                food = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                };
+            }
+        }
+        
+        function draw() {
+            ctx.fillStyle = COLORS.bg;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            if (gameState !== 'playing') return;
+            
+            ctx.fillStyle = COLORS.snake;
+            snake.forEach(segment => {
+                ctx.fillRect(
+                    segment.x * gridSize + 1,
+                    segment.y * gridSize + 1,
+                    gridSize - 2,
+                    gridSize - 2
+                );
+            });
+            
+            ctx.fillStyle = COLORS.food;
+            ctx.fillRect(
+                food.x * gridSize + 1,
+                food.y * gridSize + 1,
+                gridSize - 2,
+                gridSize - 2
+            );
+        }
+        
+        function update(timestamp) {
+            if (gameState !== 'playing') return;
+            
+            if (timestamp - lastUpdate < gameSpeed) return;
+            lastUpdate = timestamp;
+            
+            const head = {
+                x: snake[0].x + dx,
+                y: snake[0].y + dy
+            };
+            
+            if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount) {
+                endGame();
+                return;
+            }
+            
+            if (snake.some(segment => segment.x === head.x && segment.y === head.y)) {
+                endGame();
+                return;
+            }
+            
+            snake.unshift(head);
+            
+            if (head.x === food.x && head.y === food.y) {
+                score++;
+                scoreEl.textContent = score;
+                spawnFood();
+                
+                if (score % 5 === 0 && gameSpeed > 80) {
+                    gameSpeed -= 10;
+                }
+            } else {
+                snake.pop();
+            }
+        }
+        
+        async function endGame() {
+            gameState = 'gameOver';
+            
+            if (score > highScore) {
+                highScore = score;
+                highScoreEl.textContent = highScore;
+            }
+            
+            const isWorldRecord = score > globalHighScore;
+            
+            // Save to Firebase
+            await saveToLeaderboard(score, currentUsername);
+            
+            let message = 'GAME OVER';
+            if (isWorldRecord && score > 0) {
+                message = `NEW WORLD RECORD!<br>${currentUsername}!`;
+            }
+            
+            finalScoreEl.innerHTML = `<div style="margin-bottom: 10px;">${message}</div>Score: ${score}`;
+            gameOverScreen.style.display = 'flex';
+        }
+        
+        function changeDirection(newDx, newDy) {
+            if (dx === -newDx && dy === -newDy) return;
+            if (dx === newDx && dy === newDy) return;
+            
+            dx = newDx;
+            dy = newDy;
+        }
+        
+        function gameLoop(timestamp) {
+            update(timestamp);
+            draw();
+            requestAnimationFrame(gameLoop);
+        }
+        
+        function startGame() {
+            const usernameInput = document.getElementById('usernameInput');
+            currentUsername = usernameInput.value.trim() || 'Anonymous';
+            startScreen.style.display = 'none';
+            gameState = 'playing';
+            initGame();
+        }
+        
+        function restartGame() {
+            gameOverScreen.style.display = 'none';
+            gameState = 'playing';
+            initGame();
+        }
+        
+        // ============================================
+        // EVENT LISTENERS
+        // ============================================
+        
+        document.getElementById('startBtn').addEventListener('click', startGame);
+        document.getElementById('startBtn').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            startGame();
+        });
+        
+        document.getElementById('usernameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                startGame();
+            }
+        });
+        
+        document.getElementById('restartBtn').addEventListener('click', restartGame);
+        document.getElementById('restartBtn').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            restartGame();
+        });
+        
+        document.getElementById('viewLeaderboardBtn').addEventListener('click', showLeaderboard);
+        document.getElementById('viewLeaderboardBtn2').addEventListener('click', showLeaderboard);
+        document.getElementById('closeLeaderboardBtn').addEventListener('click', hideLeaderboard);
+        
+        document.addEventListener('keydown', (e) => {
+            if (gameState !== 'playing') return;
+            
+            switch(e.key) {
+                case 'ArrowUp':
+                    changeDirection(0, -1);
+                    e.preventDefault();
+                    break;
+                case 'ArrowDown':
+                    changeDirection(0, 1);
+                    e.preventDefault();
+                    break;
+                case 'ArrowLeft':
+                    changeDirection(-1, 0);
+                    e.preventDefault();
+                    break;
+                case 'ArrowRight':
+                    changeDirection(1, 0);
+                    e.preventDefault();
+                    break;
+            }
+        });
+        
+        function handleDirectionInput(clientX, clientY) {
+            if (gameState !== 'playing') return;
+            
+            const rect = canvas.getBoundingClientRect();
+            const clickX = clientX - rect.left;
+            const clickY = clientY - rect.top;
+            
+            const canvasX = (clickX / rect.width) * canvas.width;
+            const canvasY = (clickY / rect.height) * canvas.height;
+            
+            const head = snake[0];
+            const headX = head.x * gridSize + gridSize / 2;
+            const headY = head.y * gridSize + gridSize / 2;
+            
+            const deltaX = canvasX - headX;
+            const deltaY = canvasY - headY;
+            
+            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+                if (deltaX > 0) {
+                    changeDirection(1, 0);
+                } else {
+                    changeDirection(-1, 0);
+                }
+            } else {
+                if (deltaY > 0) {
+                    changeDirection(0, 1);
+                } else {
+                    changeDirection(0, -1);
+                }
+            }
+        }
+        
+        canvas.addEventListener('click', (e) => {
+            handleDirectionInput(e.clientX, e.clientY);
+        });
+        
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            if (e.touches.length > 0) {
+                handleDirectionInput(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        });
+        
+        requestAnimationFrame(gameLoop);
+    </script>
+    </body>
+</html>
