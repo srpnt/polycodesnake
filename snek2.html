@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>polycode.sh</title>
+    <title>Snake Game</title>
     <style>
         * {
             margin: 0;
@@ -78,6 +78,75 @@
         
         #canvasContainer {
             position: relative;
+        }
+        
+        #mobileControls {
+            display: none;
+            position: relative;
+            margin-top: 20px;
+            width: 100%;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        #controlPad {
+            position: relative;
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+        
+        .control-btn {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: #2d4a2c;
+            border: 3px solid #1a2a1a;
+            border-radius: 8px;
+            color: #9cb895;
+            font-size: 24px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            transition: all 0.1s;
+            touch-action: manipulation;
+        }
+        
+        .control-btn:active {
+            background: #1a2a1a;
+            transform: scale(0.95);
+        }
+        
+        #btnUp {
+            left: 70px;
+            top: 0;
+        }
+        
+        #btnDown {
+            left: 70px;
+            bottom: 0;
+        }
+        
+        #btnLeft {
+            left: 0;
+            top: 70px;
+        }
+        
+        #btnRight {
+            right: 0;
+            top: 70px;
+        }
+        
+        .control-hint {
+            text-align: center;
+            color: #2d4a2c;
+            font-size: 16px;
+            margin-top: 10px;
+            font-weight: bold;
         }
         
         h1 {
@@ -205,9 +274,19 @@
                 font-size: 14px;
                 padding: 8px 12px;
             }
+            #mobileControls {
+                display: block;
+            }
+        }
+        
+        @media (hover: none) and (pointer: coarse) {
+            #mobileControls {
+                display: block;
+            }
         }
     </style>
-    </head>
+</head>
+<body>
     <div id="gameContainer">
         <div id="gameScreen">
             <div id="canvasContainer">
@@ -217,7 +296,7 @@
                     <h1>SNAKE</h1>
                     <div class="instructions">
                         Desktop: Arrow Keys<br>
-                        Mobile: Tap Direction
+                        Mobile: Swipe or Tap Arrows
                     </div>
                     <input type="text" id="usernameInput" placeholder="Enter your name" maxlength="15">
                     <button class="gameBtn" id="startBtn">START</button>
@@ -242,16 +321,23 @@
                 <span>Your Best: <span id="highScore">0</span></span>
                 <span>World Record: <span id="globalHighScore">0</span></span>
             </div>
+            
+            <div id="mobileControls">
+                <div class="control-hint">Swipe or Tap</div>
+                <div id="controlPad">
+                    <div class="control-btn" id="btnUp">▲</div>
+                    <div class="control-btn" id="btnDown">▼</div>
+                    <div class="control-btn" id="btnLeft">◄</div>
+                    <div class="control-btn" id="btnRight">►</div>
+                </div>
+            </div>
         </div>
     </div>
-    <!-- Firebase SDK -->
+    
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     
     <script>
-        // ============================================
-        // FIREBASE CONFIGURATION
-        // ============================================
         const firebaseConfig = {
             apiKey: "AIzaSyAOUT4Bg-ts4bbfSlOE7-w4TepRCDS4tlI",
             authDomain: "snek-32231.firebaseapp.com",
@@ -262,20 +348,14 @@
             appId: "1:92642891479:web:5b5a334b5b113e5d9cc292"
         };
         
-        // Initialize Firebase
         let database = null;
         try {
             firebase.initializeApp(firebaseConfig);
             database = firebase.database();
-            console.log('Firebase initialized successfully');
         } catch (error) {
-            console.error('Firebase initialization error:', error);
-            alert('Please configure Firebase. See console for details.');
+            console.error('Firebase error:', error);
         }
         
-        // ============================================
-        // GAME CODE
-        // ============================================
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         const startScreen = document.getElementById('startScreen');
@@ -309,11 +389,13 @@
             food: '#2d4a2c'
         };
         
-        // ============================================
-        // FIREBASE FUNCTIONS
-        // ============================================
+        // Swipe detection
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        const minSwipeDistance = 30;
         
-        // Load leaderboard from Firebase
         async function loadLeaderboard() {
             if (!database) return;
             
@@ -337,7 +419,6 @@
             }
         }
         
-        // Save score to Firebase
         async function saveToLeaderboard(score, username) {
             if (!database || score === 0) return;
             
@@ -349,16 +430,12 @@
                     timestamp: Date.now()
                 });
                 
-                // Reload leaderboard after saving
                 await loadLeaderboard();
-                
-                console.log('Score saved to Firebase');
             } catch (error) {
                 console.error('Error saving score:', error);
             }
         }
         
-        // Update global score display
         function updateGlobalScoreDisplay() {
             if (globalHighScore > 0) {
                 globalHighScoreEl.textContent = `${globalHighScore} (${globalHighScoreUsername})`;
@@ -367,7 +444,6 @@
             }
         }
         
-        // Display leaderboard
         function displayLeaderboard() {
             const list = document.getElementById('leaderboardList');
             list.innerHTML = '';
@@ -388,7 +464,6 @@
             });
         }
         
-        // Show leaderboard screen
         async function showLeaderboard() {
             await loadLeaderboard();
             displayLeaderboard();
@@ -397,7 +472,6 @@
             gameOverScreen.style.display = 'none';
         }
         
-        // Hide leaderboard screen
         function hideLeaderboard() {
             leaderboardScreen.style.display = 'none';
             if (gameState === 'start') {
@@ -407,12 +481,7 @@
             }
         }
         
-        // Load on page load
         loadLeaderboard();
-        
-        // ============================================
-        // GAME LOGIC
-        // ============================================
         
         function initGame() {
             snake = [
@@ -513,7 +582,6 @@
             
             const isWorldRecord = score > globalHighScore;
             
-            // Save to Firebase
             await saveToLeaderboard(score, currentUsername);
             
             let message = 'GAME OVER';
@@ -526,6 +594,7 @@
         }
         
         function changeDirection(newDx, newDy) {
+            if (gameState !== 'playing') return;
             if (dx === -newDx && dy === -newDy) return;
             if (dx === newDx && dy === newDy) return;
             
@@ -553,32 +622,18 @@
             initGame();
         }
         
-        // ============================================
-        // EVENT LISTENERS
-        // ============================================
-        
+        // Event Listeners
         document.getElementById('startBtn').addEventListener('click', startGame);
-        document.getElementById('startBtn').addEventListener('touchend', (e) => {
-            e.preventDefault();
-            startGame();
-        });
-        
         document.getElementById('usernameInput').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                startGame();
-            }
+            if (e.key === 'Enter') startGame();
         });
         
         document.getElementById('restartBtn').addEventListener('click', restartGame);
-        document.getElementById('restartBtn').addEventListener('touchend', (e) => {
-            e.preventDefault();
-            restartGame();
-        });
-        
         document.getElementById('viewLeaderboardBtn').addEventListener('click', showLeaderboard);
         document.getElementById('viewLeaderboardBtn2').addEventListener('click', showLeaderboard);
         document.getElementById('closeLeaderboardBtn').addEventListener('click', hideLeaderboard);
         
+        // Keyboard controls
         document.addEventListener('keydown', (e) => {
             if (gameState !== 'playing') return;
             
@@ -602,24 +657,59 @@
             }
         });
         
-        function handleDirectionInput(clientX, clientY) {
+        // On-screen button controls
+        document.getElementById('btnUp').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            changeDirection(0, -1);
+        });
+        
+        document.getElementById('btnDown').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            changeDirection(0, 1);
+        });
+        
+        document.getElementById('btnLeft').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            changeDirection(-1, 0);
+        });
+        
+        document.getElementById('btnRight').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            changeDirection(1, 0);
+        });
+        
+        // Mouse clicks on buttons
+        document.getElementById('btnUp').addEventListener('click', () => changeDirection(0, -1));
+        document.getElementById('btnDown').addEventListener('click', () => changeDirection(0, 1));
+        document.getElementById('btnLeft').addEventListener('click', () => changeDirection(-1, 0));
+        document.getElementById('btnRight').addEventListener('click', () => changeDirection(1, 0));
+        
+        // Swipe detection on canvas
+        canvas.addEventListener('touchstart', (e) => {
             if (gameState !== 'playing') return;
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            if (gameState !== 'playing') return;
+            touchEndX = e.changedTouches[0].screenX;
+            touchEndY = e.changedTouches[0].screenY;
+            handleSwipe();
+        });
+        
+        function handleSwipe() {
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
             
-            const rect = canvas.getBoundingClientRect();
-            const clickX = clientX - rect.left;
-            const clickY = clientY - rect.top;
+            const absDeltaX = Math.abs(deltaX);
+            const absDeltaY = Math.abs(deltaY);
             
-            const canvasX = (clickX / rect.width) * canvas.width;
-            const canvasY = (clickY / rect.height) * canvas.height;
+            if (absDeltaX < minSwipeDistance && absDeltaY < minSwipeDistance) {
+                return;
+            }
             
-            const head = snake[0];
-            const headX = head.x * gridSize + gridSize / 2;
-            const headY = head.y * gridSize + gridSize / 2;
-            
-            const deltaX = canvasX - headX;
-            const deltaY = canvasY - headY;
-            
-            if (Math.abs(deltaX) > Math.abs(deltaY)) {
+            if (absDeltaX > absDeltaY) {
                 if (deltaX > 0) {
                     changeDirection(1, 0);
                 } else {
@@ -634,18 +724,7 @@
             }
         }
         
-        canvas.addEventListener('click', (e) => {
-            handleDirectionInput(e.clientX, e.clientY);
-        });
-        
-        canvas.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            if (e.touches.length > 0) {
-                handleDirectionInput(e.touches[0].clientX, e.touches[0].clientY);
-            }
-        });
-        
         requestAnimationFrame(gameLoop);
     </script>
-    </body>
+</body>
 </html>
