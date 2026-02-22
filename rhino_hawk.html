@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Morpho Crisis Simulation — Flash Crash Stress Test</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface-2: #1c2129;
+    --border: #30363d;
+    --border-light: #21262d;
+    --text: #e6edf3;
+    --text-muted: #8b949e;
+    --text-dim: #484f58;
+    --accent-blue: #58a6ff;
+    --accent-green: #3fb950;
+    --accent-red: #f85149;
+    --accent-orange: #d29922;
+    --accent-purple: #bc8cff;
+    --accent-cyan: #39d2c0;
+    --rhino: #58a6ff;
+    --hawk: #f0883e;
+    --code-bg: #0d1117;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .container {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 40px 48px 80px;
+  }
+
+  /* ── Cover ── */
+  .cover {
+    text-align: center;
+    padding: 80px 0 60px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+  .cover-label {
+    text-transform: uppercase;
+    letter-spacing: 4px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+  }
+  .cover h1 {
+    font-size: 36px;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .cover-subtitle {
+    font-size: 18px;
+    color: var(--text-muted);
+    font-weight: 400;
+    margin-bottom: 32px;
+  }
+  .cover-meta {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    font-size: 13px;
+    color: var(--text-dim);
+  }
+  .cover-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ── Role badges ── */
+  .role-badges {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .role-badge.rhino {
+    background: rgba(88, 166, 255, 0.1);
+    border: 1px solid rgba(88, 166, 255, 0.25);
+    color: var(--rhino);
+  }
+  .role-badge.hawk {
+    background: rgba(240, 136, 62, 0.1);
+    border: 1px solid rgba(240, 136, 62, 0.25);
+    color: var(--hawk);
+  }
+
+  /* ── Section headers ── */
+  .deliverable-header {
+    margin: 48px 0 24px;
+    padding: 16px 20px;
+    border-radius: 10px;
+    border-left: 4px solid;
+  }
+  .deliverable-header.d1 {
+    background: rgba(88, 166, 255, 0.06);
+    border-left-color: var(--accent-blue);
+  }
+  .deliverable-header.d2 {
+    background: rgba(240, 136, 62, 0.06);
+    border-left-color: var(--hawk);
+  }
+  .deliverable-header.d3 {
+    background: rgba(188, 140, 255, 0.06);
+    border-left-color: var(--accent-purple);
+  }
+  .deliverable-header.appendix {
+    background: rgba(139, 148, 158, 0.06);
+    border-left-color: var(--text-muted);
+  }
+  .deliverable-header h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0;
+    line-height: 1.3;
+  }
+  .deliverable-header .label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    display: block;
+  }
+  .deliverable-header.d1 .label { color: var(--accent-blue); }
+  .deliverable-header.d2 .label { color: var(--hawk); }
+  .deliverable-header.d3 .label { color: var(--accent-purple); }
+  .deliverable-header.appendix .label { color: var(--text-muted); }
+
+  /* ── Headings ── */
+  h3 {
+    font-size: 17px;
+    font-weight: 600;
+    margin: 36px 0 16px;
+    color: var(--text);
+  }
+  h4 {
+    font-size: 14px;
+    font-weight: 600;
+    margin: 28px 0 12px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* ── Paragraphs ── */
+  p {
+    margin-bottom: 16px;
+    color: var(--text);
+  }
+  p strong { color: #fff; }
+
+  /* ── Tables ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0 28px;
+    font-size: 13.5px;
+  }
+  thead th {
+    text-align: left;
+    padding: 10px 14px;
+    font-weight: 600;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-muted);
+    border-bottom: 2px solid var(--border);
+    background: var(--surface);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: var(--surface); }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* ── Code ── */
+  code {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12.5px;
+    background: var(--surface);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--accent-cyan);
+  }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 24px;
+    overflow-x: auto;
+    margin: 20px 0 28px;
+    line-height: 1.6;
+  }
+  pre code {
+    background: none;
+    padding: 0;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .sql-keyword { color: var(--accent-purple); font-weight: 500; }
+  .sql-comment { color: var(--text-dim); font-style: italic; }
+  .sql-string { color: var(--accent-green); }
+  .sql-function { color: var(--accent-cyan); }
+  .sql-alias { color: var(--accent-blue); }
+
+  /* ── Callout boxes ── */
+  .callout {
+    padding: 16px 20px;
+    border-radius: 8px;
+    margin: 20px 0;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .callout.info {
+    background: rgba(88, 166, 255, 0.08);
+    border: 1px solid rgba(88, 166, 255, 0.2);
+  }
+  .callout.warning {
+    background: rgba(210, 153, 34, 0.08);
+    border: 1px solid rgba(210, 153, 34, 0.2);
+  }
+  .callout.danger {
+    background: rgba(248, 81, 73, 0.08);
+    border: 1px solid rgba(248, 81, 73, 0.2);
+  }
+
+  /* ── Role sections ── */
+  .role-section {
+    padding: 20px 24px;
+    border-radius: 10px;
+    margin: 20px 0;
+  }
+  .role-section.rhino {
+    background: rgba(88, 166, 255, 0.04);
+    border: 1px solid rgba(88, 166, 255, 0.12);
+  }
+  .role-section.hawk {
+    background: rgba(240, 136, 62, 0.04);
+    border: 1px solid rgba(240, 136, 62, 0.12);
+  }
+  .role-section .role-label {
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .role-section.rhino .role-label { color: var(--rhino); }
+  .role-section.hawk .role-label { color: var(--hawk); }
+
+  /* ── Ordered/numbered lists ── */
+  ol, ul {
+    margin: 12px 0 20px 24px;
+    line-height: 1.8;
+  }
+  li { margin-bottom: 4px; }
+
+  /* ── Status indicators ── */
+  .status-done { color: var(--accent-green); }
+  .status-pending { color: var(--accent-orange); }
+  .status-blocked { color: var(--accent-red); }
+
+  /* ── Separator ── */
+  hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 48px 0;
+  }
+
+  /* ── Sources ── */
+  .sources {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .sources a {
+    color: var(--accent-blue);
+    text-decoration: none;
+  }
+  .sources a:hover {
+    text-decoration: underline;
+  }
+
+  /* ── Monospace addresses ── */
+  .addr {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--accent-cyan);
+    word-break: break-all;
+  }
+
+  /* ── Play cards ── */
+  .play-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    margin: 24px 0;
+  }
+  .play-card h3 {
+    margin-top: 0;
+    font-size: 18px;
+    color: var(--hawk);
+  }
+  .play-card .meta-row {
+    display: flex;
+    gap: 24px;
+    margin: 16px 0;
+    flex-wrap: wrap;
+  }
+  .play-card .meta-item {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .play-card .meta-item strong {
+    display: block;
+    font-size: 14px;
+    color: var(--text);
+    margin-top: 2px;
+  }
+  .play-card .kill-box {
+    background: rgba(248, 81, 73, 0.06);
+    border: 1px solid rgba(248, 81, 73, 0.15);
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-top: 16px;
+    font-size: 13px;
+  }
+  .play-card .kill-box .kill-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--accent-red);
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  /* ── Adversarial items ── */
+  .adversarial-item {
+    background: var(--surface);
+    border-left: 3px solid var(--hawk);
+    padding: 16px 20px;
+    margin: 16px 0;
+    border-radius: 0 8px 8px 0;
+  }
+  .adversarial-item .number {
+    font-weight: 700;
+    color: var(--hawk);
+    margin-right: 6px;
+  }
+  .adversarial-item .defence {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border-light);
+    color: var(--rhino);
+    font-size: 13.5px;
+  }
+  .adversarial-item .defence-label {
+    font-weight: 600;
+    color: var(--rhino);
+  }
+
+  /* ── Timeline ── */
+  .timeline-block {
+    position: relative;
+    padding-left: 28px;
+    margin: 24px 0;
+  }
+  .timeline-block::before {
+    content: '';
+    position: absolute;
+    left: 8px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: var(--border);
+  }
+  .timeline-marker {
+    position: absolute;
+    left: 0;
+    top: 4px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-blue);
+    background: var(--bg);
+  }
+  .timeline-time {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent-blue);
+    margin-bottom: 12px;
+  }
+
+  /* ── Key findings box ── */
+  .key-findings {
+    background: linear-gradient(135deg, rgba(88, 166, 255, 0.06), rgba(188, 140, 255, 0.06));
+    border: 1px solid rgba(88, 166, 255, 0.15);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin: 28px 0;
+  }
+  .key-findings h3 {
+    margin-top: 0;
+    color: var(--accent-blue);
+  }
+
+  /* ── Print ── */
+  @media print {
+    body { font-size: 10.5pt; }
+    .container { padding: 16px 20px; max-width: 100%; }
+    .cover { padding: 30px 0 20px; }
+    .cover h1 { font-size: 24pt; }
+
+    /* Keep headers glued to their content */
+    h3, h4 {
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+
+    /* Prevent orphaned headers — tables/sections stay with their heading */
+    table, pre, .play-card, .adversarial-item, .role-section, .key-findings, .callout {
+      break-inside: avoid;
+      page-break-inside: avoid;
+    }
+
+    /* Tighten spacing for print */
+    /* Deliverable headers: no box, just inline — prevents orphan whitespace */
+    .deliverable-header {
+      margin: 28px 0 12px;
+      padding: 10px 16px;
+      break-inside: avoid;
+      page-break-inside: avoid;
+      break-after: avoid;
+      page-break-after: avoid;
+    }
+    .deliverable-header h2 { font-size: 16pt; }
+    h3 { margin: 24px 0 10px; }
+    h4 { margin: 18px 0 8px; }
+    p { margin-bottom: 10px; }
+    table { margin: 12px 0 18px; }
+    pre { margin: 12px 0 18px; padding: 16px; }
+    .play-card { padding: 18px; margin: 16px 0; }
+    .adversarial-item { padding: 12px 16px; margin: 10px 0; }
+    .role-section { padding: 14px 18px; margin: 12px 0; }
+    .timeline-block { margin: 16px 0; }
+    hr { margin: 28px 0; }
+    .toc { margin: 20px 0 32px; padding: 16px 24px; }
+    .cover-meta { gap: 16px; }
+    .role-badges { margin-top: 16px; }
+
+    /* Allow large tables to break across pages if needed */
+    table.breakable { break-inside: auto; page-break-inside: auto; }
+  }
+
+  /* ── TOC ── */
+  .toc {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 32px;
+    margin: 32px 0 48px;
+  }
+  .toc h3 {
+    margin-top: 0;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+  .toc ol {
+    margin: 0;
+    list-style: none;
+    counter-reset: toc-counter;
+    padding: 0;
+  }
+  .toc li {
+    counter-increment: toc-counter;
+    padding: 6px 0;
+    border-bottom: 1px solid var(--border-light);
+    font-size: 14px;
+  }
+  .toc li:last-child { border-bottom: none; }
+  .toc li::before {
+    content: counter(toc-counter, decimal-leading-zero);
+    margin-right: 12px;
+    color: var(--text-dim);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .toc a { color: var(--text); text-decoration: none; }
+  .toc a:hover { color: var(--accent-blue); }
+  .toc .toc-sub {
+    padding-left: 36px;
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<!-- ═══════════════════════════ COVER ═══════════════════════════ -->
+<div class="cover">
+  <div class="cover-label">Simulation Report</div>
+  <h1>Morpho Crisis Simulation:<br>Flash Crash Stress Test</h1>
+  <div class="cover-subtitle">Dual-Perspective Analysis — October 10, 2025</div>
+  <div class="cover-meta">
+    <span>📅 February 2026</span>
+    <span>📊 Case Study: MEV Capital USDC Vault</span>
+    <span>🔗 Morpho Blue · Ethereum</span>
+  </div>
+  <div class="role-badges">
+    <span class="role-badge rhino">🦏 Rhino — Curator Defence</span>
+    <span class="role-badge hawk">🦅 Hawk — Opportunistic Extraction</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ TOC ═══════════════════════════ -->
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#d1">Deliverable 1 — Incident Memo</a></li>
+    <li><a href="#d2">Deliverable 2 — Opportunist Playbook</a></li>
+    <li><a href="#d3">Deliverable 3 — Dune SQL Query</a></li>
+    <li><a href="#a">Appendix A — Diagnosis (Task A)</a></li>
+    <li><a href="#b">Appendix B — Opportunistic Analysis (Task B)</a></li>
+    <li><a href="#c">Appendix C — Actions (Task C)</a></li>
+    <li><a href="#sources">Sources</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════ DELIVERABLE 1 ═══════════════════════════ -->
+<div class="deliverable-header d1" id="d1">
+  <span class="label">Deliverable 1</span>
+  <h2>Incident Memo</h2>
+</div>
+
+<h3>Situation</h3>
+
+<p>On October 10, 2025 at ~21:15 UTC, a flash crash triggered by Trump's 100% China tariff announcement liquidated <strong>$19 billion</strong> in leveraged positions across crypto. BTC fell from $122,000 to $105,000 (-14%). Alts dropped 30–60%. Order-book depth collapsed &gt;90%. Ethereum mainnet gas spiked above 500 gwei. USDe depegged to $0.65 on Binance. 1.62 million trader accounts were liquidated in 14 hours, peaking at $10.39B/hour.</p>
+
+<p>Morpho held <strong>~$6.7B TVL</strong> ($10.2B deposits) at the time of impact. The October crash itself did not produce a publicly documented Morpho bad debt event. The closest confirmed case — used as the primary case study throughout this report — is the <strong>MEV Capital USDC Vault</strong> bad debt event from <strong>November 2025</strong>, which involved structurally identical failure modes (stablecoin depeg, oracle failure, liquidation impossibility). All October 10 market data (prices, gas, liquidation volumes) is factual. The bad debt case study specifics are factual from November 2025.</p>
+
+<h3>Bad Debt Event — MEV Capital USDC Vault</h3>
+
+<table>
+  <thead>
+    <tr><th></th><th>Ethereum</th><th>Arbitrum</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Vault</strong></td>
+      <td><span class="addr">0xd63070114470f685b75B74D60EEc7c1113d33a3D</span></td>
+      <td><span class="addr">0xa60643c90A542A95026C0F1dbdB0615fF42019Cf</span></td>
+    </tr>
+    <tr><td><strong>Curator</strong></td><td>MEV Capital</td><td>MEV Capital</td></tr>
+    <tr><td><strong>Bad Debt Market</strong></td><td>sdeUSD/USDC (Elixir) + xUSD/USDC (Stream Finance)</td><td>sdeUSD/USDC (Elixir)</td></tr>
+    <tr><td><strong>Depositor Haircut</strong></td><td style="color: var(--accent-orange); font-weight: 600;">3.5%</td><td style="color: var(--accent-red); font-weight: 600;">12%</td></tr>
+    <tr><td><strong>xUSD Bad Debt</strong></td><td>~$700K</td><td>Unknown</td></tr>
+    <tr><td><strong>Root Cause</strong></td><td colspan="2">Elixir retired deUSD with no recovery → sdeUSD lost 99.8% → collateral worthless → unrecoverable bad debt</td></tr>
+  </tbody>
+</table>
+
+<div class="callout info">
+  <strong>Counter-example:</strong> Gauntlet USDC Balanced Vault reported <strong>zero bad debt</strong>, gained <strong>35% TVL</strong> (flight-to-quality), and processed $42.8M in withdrawals (40% of pre-stress TVL) without issues. Liquidity compression resolved in ~6 hours via IRM rate spike.
+</div>
+
+<h3>🦏 Rhino — Curator Actions</h3>
+
+<table>
+  <thead><tr><th style="width:60px;">Status</th><th>Action</th></tr></thead>
+  <tbody>
+    <tr><td class="status-done">✅</td><td>sdeUSD/USDC market removed from vault allocation queue</td></tr>
+    <tr><td class="status-done">✅</td><td>Vault isolated — no new deposits to affected markets</td></tr>
+    <tr><td class="status-done">✅</td><td>Supply caps reduced on all remaining non-blue-chip collateral markets</td></tr>
+    <tr><td class="status-done">✅</td><td>Depositor communication: factual, numbers-first, within 60 minutes</td></tr>
+    <tr><td class="status-pending">⏳</td><td>Creditor resolution with Elixir (USDC compensation process announced)</td></tr>
+    <tr><td class="status-pending">⏳</td><td>Post-mortem: max LLTV 90%→80% for stablecoin pairs, multi-oracle for non-top-10 stablecoins, circuit breaker at &gt;10% depeg</td></tr>
+    <tr><td class="status-blocked">❌</td><td>Asset injection NOT recommended at 3.5% — socialise as designed (moral hazard)</td></tr>
+  </tbody>
+</table>
+
+<h3>🦅 Hawk — Opportunity Actions</h3>
+
+<table>
+  <thead><tr><th style="width:60px;">Status</th><th>Action</th><th style="width:120px;">Est. P&amp;L</th></tr></thead>
+  <tbody>
+    <tr><td class="status-done">✅</td><td>Liquidated profitable underwater positions during cascade (Flashbots bundles, 500 gwei filtered retail)</td><td>$15–50K</td></tr>
+    <tr><td class="status-done">✅</td><td>Supplied USDC to stressed healthy markets at 100%+ APR (IRM emergency)</td><td>$5–30K/wk</td></tr>
+    <tr><td class="status-done">✅</td><td>Accumulated depressed vault shares at 5–15% discount to post-haircut NAV</td><td>$5–50K</td></tr>
+    <tr><td class="status-done">✅</td><td>Deposited into Gauntlet USDC Balanced (flight-to-quality, +35% TVL)</td><td>$25–80K ann.</td></tr>
+    <tr><td class="status-done">✅</td><td>Scanning all 320 MetaMorpho vaults for next curator with exotic stablecoin exposure</td><td>—</td></tr>
+    <tr style="font-weight: 700; border-top: 2px solid var(--border);"><td></td><td>Total (on $1M deployed, 2-week horizon)</td><td>$50K–$200K</td></tr>
+  </tbody>
+</table>
+
+<h3>Monitoring Priority (Both Roles)</h3>
+
+<table>
+  <thead><tr><th>Cadence</th><th>Rhino Watches</th><th>Hawk Watches</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Block-by-block</strong></td><td>Liquidation events, oracle freshness, gas price</td><td>Pending liquidation txs, oracle heartbeat gaps</td></tr>
+    <tr><td><strong>Every minute</strong></td><td>Top 50 position health factors, stablecoin pegs</td><td>CEX-DEX spreads &gt;2%, HF &lt;1.02 targets</td></tr>
+    <tr><td><strong>Every 5 min</strong></td><td>Vault share price, per-market utilisation vs 95%</td><td>Vault share discount to NAV, IRM rate spikes</td></tr>
+    <tr><td><strong>Every 15 min</strong></td><td>Vault TVL flows, bridge outflows (L2→L1)</td><td>Funding rate reversals, new vault launches</td></tr>
+    <tr><td><strong>Hourly</strong></td><td>Cumulative bad debt, liquidator bot census</td><td>P&amp;L accounting, rate farm APR decay</td></tr>
+    <tr><td><strong>Daily</strong></td><td>Governance proposals, curator reallocations</td><td>Next target scan (320 vaults, exotic exposure)</td></tr>
+  </tbody>
+</table>
+
+<div class="key-findings">
+  <h3>Key Findings</h3>
+  <p style="margin-bottom: 0;">The protocol architecture worked as designed: market isolation contained the blast radius, bad debt was socialised per-market (not protocol-wide), and the IRM drove utilisation recovery within hours. What failed was <strong>curation</strong> — accepting a 99.8%-depegable wrapped stablecoin derivative (sdeUSD) as collateral in a USDC vault. The competitive pressure of 320 curators fighting for TVL created a race to the bottom on collateral quality. The architecture is sound; the risk management layer is where both defence and exploitation happen.</p>
+</div>
+
+<hr>
+
+<!-- ═══════════════════════════ DELIVERABLE 2 ═══════════════════════════ -->
+<div class="deliverable-header d2" id="d2">
+  <span class="label">Deliverable 2</span>
+  <h2>Opportunist Playbook</h2>
+</div>
+
+<div class="play-card">
+  <h3>Play 1: Liquidation Sniping During Gas Spike</h3>
+  <p><strong>The trade.</strong> Liquidate underwater Morpho Blue positions when gas prices have eliminated 80%+ of competing liquidation bots. Morpho's liquidation incentive (5–15% collateral discount) is paid per-market regardless of gas. A $500K liquidation at 10% bonus = $50K gross profit, still massively profitable at $2–5K gas cost.</p>
+  <p><strong>The edge.</strong> Retail bots use public mempool and can't justify $2K+ gas per liquidation. You use Flashbots bundles via <code>mev-boost</code> relay, targeting only positions &gt;$100K where the incentive/gas ratio exceeds 10×. Flash loans from Aave eliminate capital requirements — borrow USDC, liquidate on Morpho, sell seized collateral on Uniswap, repay Aave, pocket the spread, all atomic in one tx.</p>
+  <p><strong>Execution steps:</strong></p>
+  <ol>
+    <li>Monitor <code>Morpho.sol</code> at <span class="addr">0xBBBBBBBBBB9cc5e90e3b3Af64bdAF62C37EEFFCb</span> — track all positions where <code>borrowValue / (collateralValue × LLTV) &gt; 0.98</code></li>
+    <li>When gas &gt;300 gwei, switch to Flashbots bundles with priority fee at 2× base fee</li>
+    <li>Call <code>Morpho.liquidate(MarketParams, borrower, seizedAssets, 0, bytes(""))</code> bundled with collateral sale on Uniswap/Curve</li>
+    <li>Target altcoin-collateral markets first — fewer specialised bots, higher LLTV = larger incentives</li>
+  </ol>
+  <div class="meta-row">
+    <div class="meta-item">Capital<strong>$200K–1M or flash loans</strong></div>
+    <div class="meta-item">Gas Cost<strong>$2–5K per liquidation at 500 gwei</strong></div>
+  </div>
+  <div class="kill-box">
+    <div class="kill-label">What Kills It</div>
+    Other sophisticated searchers running identical strategy. Oracle hasn't updated — position isn't technically liquidatable despite being underwater. Seized collateral too illiquid for atomic sale. Market moves further against you between bundle submission and inclusion.
+  </div>
+</div>
+
+<div class="play-card">
+  <h3>Play 2: Vault Share Discount Capture</h3>
+  <p><strong>The trade.</strong> MEV Capital USDC Vault at <span class="addr">0xd63070114470f685b75B74D60EEc7c1113d33a3D</span> took a 3.5% bad debt haircut (ETH). Post-haircut intrinsic value: ~$0.965 per share. Panic withdrawals push share price to $0.90–0.95 — a 2–7% discount to actual NAV. Buy the discount, wait for convergence.</p>
+  <p><strong>The edge.</strong> Information asymmetry. The 3.5% haircut is the real loss. The additional 2–7% discount is fear premium. If the remaining markets are healthy (WETH/USDC, WBTC/USDC — they are), the share price converges back to $0.965+ within 1–2 weeks. If ERC-4626 shares trade on a DEX secondary pool at deeper discount than on-chain redemption, the arb is even cleaner.</p>
+  <p><strong>Execution steps:</strong></p>
+  <ol>
+    <li>Monitor vault share price: <code>vault.convertToAssets(1e18)</code> vs theoretical NAV</li>
+    <li>If discount exceeds 6%, accumulate via <code>vault.deposit(assets, receiver)</code> or buy on DEX secondary</li>
+    <li>Hold 1–2 weeks. Exit via <code>vault.withdraw()</code> or sell when discount &lt;1%</li>
+  </ol>
+  <div class="meta-row">
+    <div class="meta-item">Capital<strong>$100–500K USDC</strong></div>
+    <div class="meta-item">Gas Cost<strong>$10–50 per deposit/withdraw</strong></div>
+  </div>
+  <div class="kill-box">
+    <div class="kill-label">What Kills It</div>
+    Hidden bad debt in other markets — another haircut compounds losses. Vault utilisation at 100% for weeks — capital locked. Curator fails to remove risky markets, takes a third hit, vault abandoned.
+  </div>
+</div>
+
+<div class="play-card">
+  <h3>Play 3: IRM Rate Farming</h3>
+  <p><strong>The trade.</strong> Supply USDC directly into Morpho Blue markets (not vaults — go direct to select your markets) experiencing &gt;95% utilisation. The IRM pushes borrow rates to 190%+ APR during stress; supply-side rates follow proportionally.</p>
+  <p><strong>The edge.</strong> You choose which markets to supply into. Filter for healthy collateral only (WETH, WBTC, stETH) — these are stressed from macro-driven withdrawals, not collateral failure. Borrowers are solvent but illiquid. They'll deleverage over 2–7 days. You earn 50–190% APR for the duration.</p>
+  <p><strong>Execution steps:</strong></p>
+  <ol>
+    <li>Read <code>market.totalBorrowAssets / market.totalSupplyAssets</code> on-chain — target &gt;90%</li>
+    <li>Filter: only WETH/USDC, WBTC/USDC, stETH/USDC markets. Reject exotic collateral.</li>
+    <li>Supply USDC: <code>Morpho.supply(MarketParams, assets, 0, onBehalf, bytes(""))</code></li>
+    <li>Hold until utilisation &lt;80%. Withdraw: <code>Morpho.withdraw(...)</code></li>
+  </ol>
+  <div class="meta-row">
+    <div class="meta-item">Capital<strong>$200K–1M</strong></div>
+    <div class="meta-item">Gas Cost<strong>$20 per supply/withdraw</strong></div>
+  </div>
+  <div class="kill-box">
+    <div class="kill-label">What Kills It</div>
+    Utilisation stays at 100% because borrowers are insolvent, not illiquid — you can't withdraw. Market generates bad debt, your supply takes a haircut. Rate compression happens in hours not days (Gauntlet's lasted only 6 hours).
+  </div>
+</div>
+
+<h3>Adversarial Feedback → Rhino</h3>
+
+<div class="adversarial-item">
+  <p><span class="number">1.</span> <strong>Oracle heartbeat sniping.</strong> I monitor every Chainlink oracle your markets use. The instant an oracle update confirms a price drop, I submit my liquidation bundle in the same block. The seconds between oracle heartbeats are my window.</p>
+  <div class="defence"><span class="defence-label">Defence:</span> Pull-based oracles (Pyth, Redstone) that update on every interaction, not push-based with stale heartbeats.</div>
+</div>
+
+<div class="adversarial-item">
+  <p><span class="number">2.</span> <strong>Vault share secondary market arb.</strong> If your vault's ERC-4626 shares trade on any DEX pool, I will buy the panic dip. The 3.5% haircut is the real loss; the extra 5–10% discount is your depositors' information disadvantage.</p>
+  <div class="defence"><span class="defence-label">Defence:</span> Immediate, factual communication. Pre-written templates. No "we are investigating" — give the number.</div>
+</div>
+
+<div class="adversarial-item">
+  <p><span class="number">3.</span> <strong>Weekend curator latency.</strong> The crash was at 21:15 UTC on a weekend. If your team takes 4 hours to respond, I've made my money before you've opened your laptop.</p>
+  <div class="defence"><span class="defence-label">Defence:</span> Automated triggers. If any collateral oracle reports &gt;20% drawdown within an hour, auto-reduce supply cap to zero. No human required.</div>
+</div>
+
+<div class="adversarial-item">
+  <p><span class="number">4.</span> <strong>Cross-vault correlation scanning.</strong> I scan all 320 MetaMorpho vaults for identical market allocations. If three curators share sdeUSD exposure, the cascade is predictable and I can position before the second and third realise they're exposed.</p>
+  <div class="defence"><span class="defence-label">Defence:</span> Publish market allocations transparently. Depositors deserve to assess correlated risk.</div>
+</div>
+
+<div class="adversarial-item">
+  <p><span class="number">5.</span> <strong>IRM exploitation is protocol-aligned.</strong> When I supply at 190% APR during your stress event, I'm adding liquidity your depositors need. This is the one play you shouldn't defend against — the IRM is working as designed. The tension is that I chose the timing and captured the premium; your depositors bore the illiquidity. This is a feature, not a bug.</p>
+  <div class="defence"><span class="defence-label">Defence:</span> None needed. Structural.</div>
+</div>
+
+<hr>
+
+<!-- ═══════════════════════════ DELIVERABLE 3 ═══════════════════════════ -->
+<div class="deliverable-header d3" id="d3">
+  <span class="label">Deliverable 3</span>
+  <h2>Dune SQL Query — Bad Debt Event Tracker</h2>
+</div>
+
+<h3>Morpho Blue: Bad Debt Events with Market Context &amp; USD Values</h3>
+
+<pre><code><span class="sql-comment">-- ================================================================</span>
+<span class="sql-comment">-- MORPHO BLUE: BAD DEBT EVENTS WITH MARKET CONTEXT &amp; USD VALUES</span>
+<span class="sql-comment">-- ================================================================</span>
+<span class="sql-comment">-- Identifies all Morpho Blue liquidation events on Ethereum that</span>
+<span class="sql-comment">-- resulted in realised bad debt (badDebtAssets &gt; 0). Joins with</span>
+<span class="sql-comment">-- market creation events for human-readable collateral/loan pairs</span>
+<span class="sql-comment">-- and with Dune's price feed for USD valuation.</span>
+<span class="sql-comment">--</span>
+<span class="sql-comment">-- Contract: Morpho Blue on Ethereum</span>
+<span class="sql-comment">--   0xBBBBBBBBBB9cc5e90e3b3Af64bdAF62C37EEFFCb</span>
+<span class="sql-comment">--</span>
+<span class="sql-comment">-- TABLE NAME NOTES:</span>
+<span class="sql-comment">--   Most likely: morpho_blue_ethereum.MorphoBlue_evt_Liquidate</span>
+<span class="sql-comment">--   Alternatives: morpho_ethereum.Morpho_evt_Liquidate</span>
+<span class="sql-comment">--   Verify by searching Dune for contract 0xBBBB...FFCB</span>
+<span class="sql-comment">-- ================================================================</span>
+
+<span class="sql-keyword">WITH</span> <span class="sql-alias">bad_debt_liquidations</span> <span class="sql-keyword">AS</span> (
+    <span class="sql-keyword">SELECT</span>
+        liq.evt_block_time,
+        liq.evt_tx_hash,
+        liq.evt_block_number,
+        liq.id                                <span class="sql-keyword">AS</span> <span class="sql-alias">market_id</span>,
+        liq."caller"                          <span class="sql-keyword">AS</span> <span class="sql-alias">liquidator_address</span>,
+        liq.borrower                          <span class="sql-keyword">AS</span> <span class="sql-alias">borrower_address</span>,
+        liq.repaidAssets                      <span class="sql-keyword">AS</span> <span class="sql-alias">repaid_raw</span>,
+        liq.seizedAssets                      <span class="sql-keyword">AS</span> <span class="sql-alias">seized_raw</span>,
+        liq.badDebtAssets                     <span class="sql-keyword">AS</span> <span class="sql-alias">bad_debt_raw</span>,
+        liq.badDebtShares                     <span class="sql-keyword">AS</span> <span class="sql-alias">bad_debt_shares</span>
+    <span class="sql-keyword">FROM</span> morpho_blue_ethereum."MorphoBlue_evt_Liquidate" liq
+    <span class="sql-keyword">WHERE</span> liq.badDebtAssets &gt; 0
+      <span class="sql-keyword">AND</span> liq.evt_block_time &gt;= <span class="sql-string">TIMESTAMP '2025-10-01 00:00:00'</span>
+      <span class="sql-keyword">AND</span> liq.evt_block_time &lt;  <span class="sql-string">TIMESTAMP '2025-12-01 00:00:00'</span>
+),
+
+<span class="sql-comment">-- Market parameters from CreateMarket events</span>
+<span class="sql-alias">market_params</span> <span class="sql-keyword">AS</span> (
+    <span class="sql-keyword">SELECT</span>
+        cm.id                                 <span class="sql-keyword">AS</span> <span class="sql-alias">market_id</span>,
+        cm.marketParams_loanToken             <span class="sql-keyword">AS</span> <span class="sql-alias">loan_token</span>,
+        cm.marketParams_collateralToken       <span class="sql-keyword">AS</span> <span class="sql-alias">collateral_token</span>,
+        cm.marketParams_oracle                <span class="sql-keyword">AS</span> <span class="sql-alias">oracle_address</span>,
+        cm.marketParams_irm                   <span class="sql-keyword">AS</span> <span class="sql-alias">irm_address</span>,
+        cm.marketParams_lltv                  <span class="sql-keyword">AS</span> <span class="sql-alias">lltv_raw</span>
+    <span class="sql-keyword">FROM</span> morpho_blue_ethereum."MorphoBlue_evt_CreateMarket" cm
+),
+
+<span class="sql-comment">-- Token metadata for human-readable output</span>
+<span class="sql-alias">token_info</span> <span class="sql-keyword">AS</span> (
+    <span class="sql-keyword">SELECT</span> contract_address, symbol, decimals
+    <span class="sql-keyword">FROM</span> tokens.erc20
+    <span class="sql-keyword">WHERE</span> blockchain = <span class="sql-string">'ethereum'</span>
+)
+
+<span class="sql-keyword">SELECT</span>
+    bd.evt_block_time                                        <span class="sql-keyword">AS</span> <span class="sql-alias">event_time</span>,
+    <span class="sql-function">DATE_TRUNC</span>('hour', bd.evt_block_time)                   <span class="sql-keyword">AS</span> <span class="sql-alias">hour_bucket</span>,
+    bd.evt_tx_hash                                           <span class="sql-keyword">AS</span> <span class="sql-alias">tx_hash</span>,
+    bd.market_id,
+    <span class="sql-function">COALESCE</span>(ct.symbol, 'UNKNOWN')                          <span class="sql-keyword">AS</span> <span class="sql-alias">collateral_symbol</span>,
+    <span class="sql-function">COALESCE</span>(lt.symbol, 'UNKNOWN')                          <span class="sql-keyword">AS</span> <span class="sql-alias">loan_symbol</span>,
+    mp.lltv_raw / 1e18 * 100                                <span class="sql-keyword">AS</span> <span class="sql-alias">lltv_pct</span>,
+    bd.liquidator_address,
+    bd.borrower_address,
+    bd.repaid_raw / <span class="sql-function">POWER</span>(10, <span class="sql-function">COALESCE</span>(lt.decimals, 18))    <span class="sql-keyword">AS</span> <span class="sql-alias">repaid_amount</span>,
+    bd.seized_raw / <span class="sql-function">POWER</span>(10, <span class="sql-function">COALESCE</span>(ct.decimals, 18))    <span class="sql-keyword">AS</span> <span class="sql-alias">seized_amount</span>,
+    bd.bad_debt_raw / <span class="sql-function">POWER</span>(10, <span class="sql-function">COALESCE</span>(lt.decimals, 18))  <span class="sql-keyword">AS</span> <span class="sql-alias">bad_debt_amount</span>,
+    bd.bad_debt_raw / <span class="sql-function">POWER</span>(10, <span class="sql-function">COALESCE</span>(lt.decimals, 18))
+        * <span class="sql-function">COALESCE</span>(lp.price, 1.0)                           <span class="sql-keyword">AS</span> <span class="sql-alias">bad_debt_usd</span>,
+    <span class="sql-function">SUM</span>(
+        bd.bad_debt_raw / <span class="sql-function">POWER</span>(10, <span class="sql-function">COALESCE</span>(lt.decimals, 18))
+        * <span class="sql-function">COALESCE</span>(lp.price, 1.0)
+    ) <span class="sql-keyword">OVER</span> (
+        <span class="sql-keyword">ORDER BY</span> bd.evt_block_time
+        <span class="sql-keyword">ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</span>
+    )                                                        <span class="sql-keyword">AS</span> <span class="sql-alias">cumulative_bad_debt_usd</span>
+
+<span class="sql-keyword">FROM</span> bad_debt_liquidations bd
+<span class="sql-keyword">LEFT JOIN</span> market_params mp       <span class="sql-keyword">ON</span> bd.market_id = mp.market_id
+<span class="sql-keyword">LEFT JOIN</span> token_info ct          <span class="sql-keyword">ON</span> mp.collateral_token = ct.contract_address
+<span class="sql-keyword">LEFT JOIN</span> token_info lt          <span class="sql-keyword">ON</span> mp.loan_token = lt.contract_address
+<span class="sql-keyword">LEFT JOIN</span> prices.usd lp
+    <span class="sql-keyword">ON</span> lp.contract_address = mp.loan_token
+    <span class="sql-keyword">AND</span> lp.blockchain = <span class="sql-string">'ethereum'</span>
+    <span class="sql-keyword">AND</span> lp.minute = <span class="sql-function">DATE_TRUNC</span>('minute', bd.evt_block_time)
+<span class="sql-keyword">ORDER BY</span> bd.evt_block_time <span class="sql-keyword">DESC</span>;</code></pre>
+
+<h3>What This Query Does</h3>
+
+<p>Filters every Morpho Blue <code>Liquidate</code> event on Ethereum where <code>badDebtAssets &gt; 0</code> — meaning the liquidation left residual unpaid debt that was socialised across lenders. Joins with <code>CreateMarket</code> events to decode market IDs into human-readable collateral/loan pairs and LLTVs. Joins with <code>tokens.erc20</code> for symbol/decimal resolution and <code>prices.usd</code> for USD valuation. Produces a running cumulative bad debt total for time-series charting.</p>
+
+<h3>Schema Notes</h3>
+
+<p>Column names (<code>badDebtAssets</code>, <code>badDebtShares</code>, <code>repaidAssets</code>, <code>seizedAssets</code>) are taken directly from the <a href="https://github.com/morpho-org/morpho-blue/blob/main/src/Morpho.sol">Morpho Blue Solidity source</a>. The <code>CreateMarket</code> event emits a <code>MarketParams</code> struct with fields prefixed <code>marketParams_</code> in Dune's decoded output. The <code>prices.usd</code> table is Dune's canonical price feed, joined on <code>contract_address</code> + <code>minute</code> for per-minute granularity.</p>
+
+<h3>Extensions</h3>
+
+<ul>
+  <li><strong>Filter to specific vault:</strong> Join with <code>MorphoBlue_evt_Supply</code> where <code>onBehalf</code> = vault address to identify exposed markets.</li>
+  <li><strong>Liquidator census:</strong> Group by <code>liquidator_address</code> to identify most active bots during stress.</li>
+  <li><strong>Utilisation overlay:</strong> Add <code>totalBorrowAssets / totalSupplyAssets</code> from <code>AccrueInterest</code> events to correlate bad debt with utilisation spikes.</li>
+</ul>
+
+<hr>
+
+<!-- ═══════════════════════════ APPENDIX A ═══════════════════════════ -->
+<div class="deliverable-header appendix" id="a">
+  <span class="label">Appendix A</span>
+  <h2>Diagnosis (Task A)</h2>
+</div>
+
+<h3>A.1 — Three-Layer Metric Framework</h3>
+
+<h4>Protocol-Level (Morpho Blue)</h4>
+
+<table>
+  <thead><tr><th>Metric</th><th>What It Tells You</th><th>Crisis Threshold</th><th>Source</th></tr></thead>
+  <tbody>
+    <tr><td>Utilisation per market</td><td>Withdrawal liquidity</td><td>&gt;90% crisis; &gt;95% IRM emergency (190%+ APR)</td><td><code>totalBorrowAssets / totalSupplyAssets</code></td></tr>
+    <tr><td>Liquidation volume</td><td>Cascade intensity</td><td>&gt;$100M/hr = systemic</td><td><code>Liquidate</code> event logs</td></tr>
+    <tr><td>Oracle vs DEX spot</td><td>Oracle accuracy</td><td>&gt;2% divergence = stale; &gt;5% = false liquidations</td><td>Chainlink vs Uniswap <code>slot0</code></td></tr>
+    <tr><td>Bad debt per market</td><td>Unrecoverable loss</td><td>Any non-zero = socialisation imminent</td><td><code>badDebtAssets &gt; 0</code></td></tr>
+    <tr><td>Available liquidity</td><td>Withdrawal capacity</td><td>&lt;10% of supply = freeze risk</td><td><code>totalSupply - totalBorrow</code></td></tr>
+    <tr><td>Liquidation incentive</td><td>Bot economics</td><td>Incentive &lt; gas cost → bots won't act</td><td>Market parameters (immutable)</td></tr>
+    <tr><td>Position health factors</td><td>Underwater risk</td><td>HF &lt;1.05 = danger; &lt;1.0 = liquidatable</td><td>Position-level on-chain</td></tr>
+    <tr><td>IRM output rate</td><td>Stress signal</td><td>&gt;100% APR = emergency mode</td><td>On-chain rate calculation</td></tr>
+  </tbody>
+</table>
+
+<h4>Vault-Level (MetaMorpho)</h4>
+
+<table>
+  <thead><tr><th>Metric</th><th>What It Tells You</th><th>Crisis Threshold</th><th>Source</th></tr></thead>
+  <tbody>
+    <tr><td>Allocation vs actual exposure</td><td>Drift from curator targets</td><td>&gt;5% drift</td><td><code>supplyQueue</code>, <code>withdrawQueue</code></td></tr>
+    <tr><td>Withdrawal queue depth</td><td>Depositor panic</td><td>Non-zero = liquidity crunch</td><td>Vault contract state</td></tr>
+    <tr><td>Share price deviation</td><td>Bad debt realisation</td><td>Sudden &gt;1% drop</td><td><code>totalAssets() / totalSupply()</code></td></tr>
+    <tr><td>Vault TVL (hourly)</td><td>Capital flight</td><td>&gt;10%/day outflow = panic</td><td>Deposit/withdraw events</td></tr>
+    <tr><td>Market concentration</td><td>Single-point-of-failure</td><td>&gt;50% in one market</td><td>Vault allocation data</td></tr>
+  </tbody>
+</table>
+
+<h4>External / Macro</h4>
+
+<table>
+  <thead><tr><th>Metric</th><th>What It Tells You</th><th>Crisis Threshold</th><th>Source</th></tr></thead>
+  <tbody>
+    <tr><td>CEX-DEX spreads</td><td>Market dislocation</td><td>&gt;1% arb; &gt;5% systemic</td><td>CoinGecko, DEX pools</td></tr>
+    <tr><td>Gas price + mempool</td><td>Liquidation economics</td><td>&gt;200 gwei = small liquidations unprofitable</td><td>Etherscan, mempool.space</td></tr>
+    <tr><td>Stablecoin pegs</td><td>Collateral revaluation</td><td>&gt;0.5% depeg review; &gt;5% systemic</td><td>Curve pool ratios</td></tr>
+    <tr><td>Liquidator activity</td><td>Bot coverage</td><td>Declining addresses = bots offline</td><td><code>Liquidate</code> msg.sender analysis</td></tr>
+    <tr><td>Bridge flows</td><td>L2 capital flight</td><td>Heavy L2→L1</td><td>Bridge contracts, DefiLlama</td></tr>
+    <tr><td>Funding rates</td><td>Leverage direction</td><td>Deeply negative = reversal signal</td><td>CoinGlass, Hyperliquid</td></tr>
+  </tbody>
+</table>
+
+<h3>A.2 — Monitoring Cadence</h3>
+
+<table>
+  <thead><tr><th>Cadence</th><th>Metrics</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Block-by-block</strong></td><td>Liquidation events, oracle updates, gas, mempool</td><td>Liquidations are atomic. Oracle heartbeats determine when positions become liquidatable.</td></tr>
+    <tr><td><strong>Every minute</strong></td><td>Health factors (top 50), CEX-DEX spreads</td><td>HF changes with every oracle update. Spreads show acceleration/stabilisation.</td></tr>
+    <tr><td><strong>Every 5 min</strong></td><td>Vault share price, withdrawal queue, utilisation</td><td>Crossing 95% utilisation triggers IRM emergency.</td></tr>
+    <tr><td><strong>Every 15 min</strong></td><td>Vault TVL flows, bridge flows, funding rates</td><td>Shows whether crisis is broadening.</td></tr>
+    <tr><td><strong>Hourly</strong></td><td>Cumulative bad debt, liquidator census, pegs</td><td>Aggregated damage. Bot census shows recovery.</td></tr>
+    <tr><td><strong>Daily</strong></td><td>Curator reallocations, governance, post-mortem</td><td>Strategic cadence. Rebuild is daily.</td></tr>
+  </tbody>
+</table>
+
+<h3>A.3 — Bad Debt Case Study: MEV Capital USDC Vault</h3>
+
+<h4>Factual vs Assumed</h4>
+
+<table>
+  <thead><tr><th>Element</th><th>Status</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td>October 10 market data (BTC, liquidations, gas, USDe)</td><td><strong style="color: var(--accent-green);">Factual</strong></td><td>Amberdata, FTI Consulting, CoinGecko</td></tr>
+    <tr><td>Morpho TVL $6.7B / $10.2B deposits</td><td><strong style="color: var(--accent-green);">Factual</strong></td><td>Morpho blog</td></tr>
+    <tr><td>MEV Capital bad debt (3.5% ETH, 12% ARB)</td><td><strong style="color: var(--accent-green);">Factual — Nov 2025</strong></td><td>Protos, Binance Square, Chorus One</td></tr>
+    <tr><td>Vault addresses</td><td><strong style="color: var(--accent-green);">Factual</strong></td><td>Morpho app</td></tr>
+    <tr><td>Gauntlet zero bad debt, +35% TVL, $42.8M withdrawals</td><td><strong style="color: var(--accent-green);">Factual — Nov 2025</strong></td><td>Gauntlet market report</td></tr>
+    <tr><td>Application of Nov case to Oct scenario</td><td><strong style="color: var(--accent-orange);">Assumed</strong></td><td>Same failure modes</td></tr>
+    <tr><td>sdeUSD/USDC market LLTV 86–90%</td><td><strong style="color: var(--accent-orange);">Estimated</strong></td><td>Typical aggressive stablecoin params</td></tr>
+  </tbody>
+</table>
+
+<h4>Root Cause Chain</h4>
+
+<ol>
+  <li><strong>Competitive curator pressure</strong> (320 vaults) → MEV Capital accepted sdeUSD as collateral for higher yields → attracted TVL</li>
+  <li><strong>Oracle assumed peg</strong> → hardcoded or near-1:1 pricing → no mechanism to react to catastrophic depeg</li>
+  <li><strong>Elixir retired deUSD</strong> → sdeUSD lost 99.8% of value → collateral worthless</li>
+  <li><strong>Liquidation impossible</strong> → no rational liquidator repays USDC to seize worthless sdeUSD → entire position = unrecoverable bad debt</li>
+  <li><strong>Stream Finance xUSD depegged 95%</strong> → additional ~$700K bad debt in separate market</li>
+</ol>
+
+<h4>Comparative Curator Performance</h4>
+
+<table>
+  <thead><tr><th>Curator</th><th>Bad Debt</th><th>TVL Change</th><th>Withdrawal Processing</th><th>Recovery</th></tr></thead>
+  <tbody>
+    <tr><td><strong>MEV Capital</strong></td><td style="color: var(--accent-red);">3.5% (ETH) / 12% (ARB)</td><td>Severe outflows</td><td>Blocked (100% util)</td><td>Ongoing</td></tr>
+    <tr><td><strong>Gauntlet</strong></td><td style="color: var(--accent-green);">0%</td><td>+35% (flight-to-quality)</td><td>$42.8M in 2 days</td><td>6 hours</td></tr>
+    <tr><td><strong>Steakhouse</strong></td><td style="color: var(--accent-green);">0%</td><td>Stable</td><td>Normal</td><td>N/A</td></tr>
+  </tbody>
+</table>
+
+<hr>
+
+<!-- ═══════════════════════════ APPENDIX B ═══════════════════════════ -->
+<div class="deliverable-header appendix" id="b">
+  <span class="label">Appendix B</span>
+  <h2>Opportunistic Analysis (Task B)</h2>
+</div>
+
+<h3>B.1 — Profit Opportunity Matrix</h3>
+
+<table>
+  <thead><tr><th>#</th><th>Play</th><th>Edge</th><th>Sizing</th><th>Entry</th><th>Est. P&amp;L</th><th>Kill Condition</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td><strong>Liquidation sniping</strong></td><td>Gas thins competition 80%+</td><td>$200K–1M</td><td>21:15–22:00</td><td>$15–75K/pos</td><td>Other searchers; oracle staleness</td></tr>
+    <tr><td>2</td><td><strong>Vault share discount</strong></td><td>3.5% haircut + 5–10% panic</td><td>$100–500K</td><td>Hours post</td><td>$5–50K</td><td>Additional bad debt; util lock</td></tr>
+    <tr><td>3</td><td><strong>IRM rate farming</strong></td><td>190%+ APR in healthy markets</td><td>$200K–1M</td><td>Within hours</td><td>$5–30K/wk</td><td>Insolvency; fast compression</td></tr>
+    <tr><td>4</td><td><strong>CEX-DEX arb (USDe)</strong></td><td>$0.65 vs $1.00 = 35% spread</td><td>$500K+</td><td>21:30–23:00</td><td>$100–350K</td><td>DEX liquidity; arb closed</td></tr>
+    <tr><td>5</td><td><strong>Flight-to-quality</strong></td><td>Gauntlet +35% TVL inflows</td><td>$500K–2M</td><td>During blow-up</td><td>$25–80K ann.</td><td>Gauntlet also hit</td></tr>
+  </tbody>
+</table>
+
+<h3>B.2 — MEV Capital Bad Debt Specific Exploitation</h3>
+
+<table>
+  <thead><tr><th>Vector</th><th>Viability</th><th>Mechanism</th></tr></thead>
+  <tbody>
+    <tr><td>Buy vault shares at discount</td><td><span class="status-done">✅ High</span></td><td>Post-haircut NAV $0.965; panic price $0.90–0.95. Buy, wait for convergence.</td></tr>
+    <tr><td>ERC-4626 secondary market arb</td><td><span class="status-done">✅ High</span></td><td>Buy on DEX at $0.90 + redeem on-chain at $0.965 = 7.2% arb.</td></tr>
+    <tr><td>Short MORPHO token</td><td><span class="status-pending">✅ Medium</span></td><td>Protocol reputation hit → token sells off. Short via perps, cover at stabilisation.</td></tr>
+    <tr><td>Liquidate remaining sdeUSD</td><td><span class="status-blocked">❌ None</span></td><td>Collateral worthless. No rational liquidator acts.</td></tr>
+    <tr><td>Supply to healthy vault markets</td><td><span class="status-pending">⚠️ Medium</span></td><td>If not fully isolated, elevated rates. May be blocked.</td></tr>
+  </tbody>
+</table>
+
+<h3>B.3 — Adversarial Lens (Hawk → Rhino)</h3>
+
+<p>Covered in full in Deliverable 2. The five vectors: oracle heartbeat sniping, vault share secondary market exploitation, curator weekend latency, cross-vault correlation analysis, and IRM rate capture. Only the first three require active defence. IRM exploitation is protocol-aligned. Cross-vault correlation is a transparency issue, not a technical one.</p>
+
+<hr>
+
+<!-- ═══════════════════════════ APPENDIX C ═══════════════════════════ -->
+<div class="deliverable-header appendix" id="c">
+  <span class="label">Appendix C</span>
+  <h2>Actions (Task C)</h2>
+</div>
+
+<h3>C.1 — Incident Timeline</h3>
+
+<div class="timeline-block">
+  <div class="timeline-marker"></div>
+  <div class="timeline-time">First 15 Minutes — 21:15–21:30 UTC</div>
+  <div class="role-section rhino">
+    <div class="role-label">🦏 Rhino</div>
+    <p style="margin-bottom: 0;">Automated alerts fire across all monitored markets. Pull real-time dashboard: utilisation rates, health factors, oracle prices. Identify which markets have positions within 5% of LLTV. Determine scope: broad market event or vault-specific? If utilisation spiking across multiple markets, initiate emergency cap reductions on volatile collateral markets. Do NOT communicate publicly — need facts first. Ping the guardian and co-curators.</p>
+  </div>
+  <div class="role-section hawk">
+    <div class="role-label">🦅 Hawk</div>
+    <p style="margin-bottom: 0;">Gas tracker up. 500 gwei = retail bots offline. Scan all Morpho Blue markets for positions with HF &lt;1.02. Prepare Flashbots bundles for largest liquidation opportunities. Check CEX-DEX spreads — any &gt;2% = arb opportunity. Deploy stablecoin dry powder to hot wallet. Begin monitoring vault share prices for emerging discounts.</p>
+  </div>
+</div>
+
+<div class="timeline-block">
+  <div class="timeline-marker"></div>
+  <div class="timeline-time">First 60 Minutes — 21:15–22:15 UTC</div>
+  <div class="role-section rhino">
+    <div class="role-label">🦏 Rhino</div>
+    <p style="margin-bottom: 0;">Bad debt confirmed in sdeUSD/USDC market. Quantify damage: absolute amount, % of vault TVL. <strong>Actions:</strong> Remove sdeUSD/USDC from allocation queue immediately. Reduce supply caps on all non-blue-chip collateral markets. Draft depositor communication: "3.5% bad debt identified. Vault isolated. All other positions healthy. Full update within 24 hours." Post to Telegram/Discord. <strong>Decision:</strong> Do not inject assets at 3.5% — socialise as designed. Begin reallocation toward WETH/USDC, WBTC/USDC.</p>
+  </div>
+  <div class="role-section hawk">
+    <div class="role-label">🦅 Hawk</div>
+    <p style="margin-bottom: 0;">Liquidations executed across 3–5 profitable positions. CEX-DEX arb running on USDe spread. <strong>Key move:</strong> Monitor MEV Capital vault share price — when 3.5% bad debt hits and panic sellers dump, accumulate if discount exceeds 6%. Supply USDC into 2–3 stressed healthy Morpho Blue markets at &gt;100% APR. Deposit $500K into Gauntlet USDC Balanced for flight-to-quality wave.</p>
+  </div>
+</div>
+
+<div class="timeline-block">
+  <div class="timeline-marker"></div>
+  <div class="timeline-time">First 24 Hours</div>
+  <div class="role-section rhino">
+    <div class="role-label">🦏 Rhino</div>
+    <p style="margin-bottom: 0;">Full bad debt accounting across all exposed markets. Check utilisation — if IRM pushed rates to 190%, borrowers should be repaying. Verify no additional markets developing bad debt (contagion check). Publish internal post-mortem draft. Engage Morpho core team. Begin governance proposal planning for parameter changes.</p>
+  </div>
+  <div class="role-section hawk">
+    <div class="role-label">🦅 Hawk</div>
+    <p style="margin-bottom: 0;">P&amp;L accounting across all positions. Start unwinding crisis-dependent plays. If vault shares recovered to &lt;2% discount, take profit. Continue rate farming if APR still elevated. Begin researching which other curators have similar exotic stablecoin exposure — position for next blow-up.</p>
+  </div>
+</div>
+
+<h3>C.2 — Two-Week Follow-Up</h3>
+
+<h4>🦏 Rhino Watchlist</h4>
+
+<table>
+  <thead><tr><th>Item</th><th>Monitor</th><th>Threshold</th></tr></thead>
+  <tbody>
+    <tr><td>Vault TVL recovery</td><td>Net inflows/outflows daily</td><td>No stabilisation by Day 7 → restructure</td></tr>
+    <tr><td>Utilisation normalisation</td><td>Per-market rates returning to 60–80%</td><td>Still &gt;90% after 1 week → zombified borrowers</td></tr>
+    <tr><td>Oracle health</td><td>Freshness and accuracy across all markets</td><td>&gt;30s staleness → review</td></tr>
+    <tr><td>Depositor migration</td><td>Returning or moved to Gauntlet/Steakhouse?</td><td>Outflows &gt;10 days → vault may not recover</td></tr>
+    <tr><td>Borrower behaviour</td><td>Repayments vs rollovers; new borrows</td><td>New borrows = confidence returning</td></tr>
+    <tr><td>Governance</td><td>Morpho forum proposals for oracle/LLTV changes</td><td>Participate actively</td></tr>
+  </tbody>
+</table>
+
+<h4>🦅 Hawk Watchlist</h4>
+
+<table>
+  <thead><tr><th>Item</th><th>Monitor</th><th>Action Trigger</th></tr></thead>
+  <tbody>
+    <tr><td>Vault share convergence</td><td>Discount-to-NAV on held shares</td><td>Exit at &lt;1% discount</td></tr>
+    <tr><td>Rate normalisation</td><td>APR on stressed markets vs baseline</td><td>Withdraw when APR &lt;2× normal</td></tr>
+    <tr><td>Next target</td><td>Scan 320 vaults for exotic exposure</td><td>Position before next blow-up</td></tr>
+    <tr><td>MORPHO token</td><td>Price trajectory post-reputation hit</td><td>Cover shorts; go long if oversold</td></tr>
+    <tr><td>New vault launches</td><td>Post-crisis vaults, tighter parameters</td><td>Early deposits = outsized yields</td></tr>
+  </tbody>
+</table>
+
+<h3>C.3 — Bad Debt Handling Recommendations</h3>
+
+<div class="role-section rhino">
+  <div class="role-label">🦏 Rhino — Defence</div>
+  <p><strong>Immediate containment:</strong> Isolate affected market (remove from supply queue). Cap all non-blue-chip markets to current exposure. Communicate within 60 minutes — facts and numbers, not platitudes.</p>
+  <p><strong>Do not inject assets</strong> at 3.5% of TVL. Too expensive, sets moral hazard precedent, and the socialisation mechanism exists for exactly this scenario. If bad debt were &lt;1%, injection would make sense to preserve depositor trust.</p>
+  <p><strong>Loss mechanics:</strong> <code>totalSupplyAssets -= badDebtAssets</code>. Share price drops 3.5% (ETH) / 12% (ARB) instantly. Each depositor's loss is proportional to their share of the affected market's supply. Vault-level impact = allocation % to bad market × bad debt % in that market.</p>
+  <p style="margin-bottom: 0;"><strong>Recovery path:</strong> Liquidate residual sdeUSD collateral (even 0.2% recovery &gt; 0). Pursue Elixir creditor resolution. Publish post-mortem with parameter changes: max LLTV 90%→80% for stablecoin pairs; multi-oracle requirement for non-top-10 stablecoins; circuit breaker auto-pausing at &gt;10% depeg. Resume deposits once all risky markets removed. Rebuild through transparency.</p>
+</div>
+
+<div class="role-section hawk" style="margin-top: 16px;">
+  <div class="role-label">🦅 Hawk — Extraction</div>
+  <p style="margin-bottom: 0;">Buy the 5–15% vault share discount. Rate farm the IRM spike. Position for the next curator blow-up by scanning vault allocations for correlated exotic-stablecoin risk. If you have liquidation infrastructure, market the service — this event proved bot coverage is structurally insufficient at scale.</p>
+</div>
+
+<hr>
+
+<!-- ═══════════════════════════ SOURCES ═══════════════════════════ -->
+<div id="sources">
+<h3>Sources</h3>
+
+<table class="sources">
+  <thead><tr><th>#</th><th>Source</th><th>URL</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Amberdata — $3.21B Vanished in 60 Seconds</td><td><a href="https://blog.amberdata.io/how-3.21b-vanished-in-60-seconds-october-2025-crypto-crash-explained-through-7-charts">link</a></td></tr>
+    <tr><td>2</td><td>FTI Consulting — Leverage Met Liquidity</td><td><a href="https://www.fticonsulting.com/insights/articles/crypto-crash-october-2025-leverage-met-liquidity">link</a></td></tr>
+    <tr><td>3</td><td>Insights4VC — Inside the $19B Flash Crash</td><td><a href="https://insights4vc.substack.com/p/inside-the-19b-flash-crash">link</a></td></tr>
+    <tr><td>4</td><td>CoinGecko — October 10 Crash Explained</td><td><a href="https://www.coingecko.com/learn/october-10-crypto-crash-explained">link</a></td></tr>
+    <tr><td>5</td><td>Fortune — Crypto Flash Crash Stress Test</td><td><a href="https://fortune.com/2025/11/23/what-happened-crypto-flash-crash-wall-street-stress-test/">link</a></td></tr>
+    <tr><td>6</td><td>Morpho Docs — Liquidation &amp; Bad Debt</td><td><a href="https://docs.morpho.org/learn/concepts/liquidation/">link</a></td></tr>
+    <tr><td>7</td><td>Morpho Docs — Curator Bad Debt Handling</td><td><a href="https://docs.morpho.org/curate/tutorials-v1/bad-debt/">link</a></td></tr>
+    <tr><td>8</td><td>Morpho Blog — October 2025 Effect</td><td><a href="https://morpho.org/blog/morpho-effect-october-2025/">link</a></td></tr>
+    <tr><td>9</td><td>Gauntlet — Nov 2025 Liquidity Stress Report</td><td><a href="https://www.gauntlet.xyz/resources/market-report-liquidity-stress-period-nov-2025">link</a></td></tr>
+    <tr><td>10</td><td>Chorus One — DeFi Curators 2025</td><td><a href="https://chorus.one/reports-research/defi-curators-in-2025-navigating-chaos-building-resilience">link</a></td></tr>
+    <tr><td>11</td><td>Protos — Moonwell Oracle Blowup</td><td><a href="https://protos.com/defi-meet-claude-moonwells-vibe-coded-oracle-in-1-8m-blowup/">link</a></td></tr>
+    <tr><td>12</td><td>Binance Square — MEV Capital Vault</td><td><a href="https://www.binance.com/en/square/post/11-13-2025-morpho-usdc-vault-faces-challenges-after-elixir-asset-removal-32328920233865">link</a></td></tr>
+    <tr><td>13</td><td>Morpho Blue Source — Morpho.sol</td><td><a href="https://github.com/morpho-org/morpho-blue/blob/main/src/Morpho.sol">link</a></td></tr>
+    <tr><td>14</td><td>Morpho Blue Contract — Etherscan</td><td><a href="https://etherscan.io/address/0xbbbbbbbbbb9cc5e90e3b3af64bdaf62c37eeffcb">link</a></td></tr>
+  </tbody>
+</table>
+</div>
+
+</div><!-- .container -->
+</body>
+</html>
