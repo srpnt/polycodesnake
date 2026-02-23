@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Morpho Blue — Oct 10 Incident Report</title>
+<title>Morpho Blue - Oct 10 Incident Report</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0;}
   body{background:#0f1117;color:#e2e8f0;font-family:system-ui,sans-serif;padding:28px 20px;font-size:14px;}
@@ -109,14 +109,14 @@
 <div class="wrap">
 
   <!-- Header -->
-  <div class="eyebrow">Morpho Blue · Integration &amp; Risk · Internal</div>
-  <h1>Oct 10 Flash Crash — Incident Report</h1>
-  <div class="meta">Date: Oct 11, 2025 &nbsp;·&nbsp; To: Morpho Risk Committee, MEV Capital &nbsp;·&nbsp; From: Market &amp; Curator Specialist</div>
+  <div class="eyebrow">Morpho · Risk · Internal</div>
+  <h1>Oct 10 Flash Crash - Incident Report</h1>
+  <div class="meta">Date: Feb 23, 2026 &nbsp;·&nbsp; To: Renan & Luciano &nbsp;·&nbsp; From: Ivan Piton </div>
   <div class="status-bar">
     <span class="badge badge-red">P0 INCIDENT</span>
     <span class="badge badge-amber">Bad Debt Realized</span>
     <span class="badge badge-green">Protocol Isolation: INTACT</span>
-    <span class="badge badge-blue">MEV Capital — 2 Vaults Affected</span>
+    <span class="badge badge-blue">MEV Capital - 2 Vaults Affected</span>
   </div>
 
   <!-- Tabs -->
@@ -134,8 +134,9 @@
 
     <div class="slabel">Incident Summary</div>
     <div class="card">
-      <p>A macro-triggered flash crash on <strong style="color:#f1f5f9">Oct 10, 2025</strong> (BTC −14%, Gas &gt;500 gwei) caused cascading liquidations across DeFi. Morpho Blue's market isolation architecture contained contagion at the protocol level, but <strong style="color:#f87171">two MEV Capital curated USDC vaults</strong> realized bad debt due to collateral depeg events in exotic stablecoin markets (xUSD and sdeUSD).</p>
-      <p>Protocol functionality remained intact. Losses were socialized to vault depositors — no DAO or protocol-level funds were impacted.</p>
+      <p>A macro-triggered flash crash on <strong style="color:#f1f5f9">Oct 10, 2025</strong> (BTC -14%, Gas &gt;500 gwei) caused cascading liquidations across DeFi. Morpho's market isolation architecture contained contagion at the protocol level, but <strong style="color:#f87171">two MEV Capital curated USDC vaults</strong> realized bad debt due to collateral depeg events in exotic stablecoin markets (xUSD and sdeUSD).</p>
+      <p>While there is not a direct causal effect between Oct 10 drop and bad debt that occured on these two MEV Capital vaults, it is clear that the general market uncertainty, and sudden price drops have broken various market structures including the strategies these vaults have previously relied on. This research assumes, with high confidence, that there are indirect links between the macro flash crash, leverage unwinds, and exotic stablecoin depegs.</p>
+      <p>Protocol functionality remained intact. Losses were socialized to vault depositors - no DAO or protocol-level funds were impacted.</p>
     </div>
 
     <div class="grid2">
@@ -167,14 +168,14 @@
       <tbody>
         <tr>
           <td><span class="badge badge-amber">Arbitrum</span></td>
-          <td style="font-family:monospace;font-size:11px;color:#94a3b8">0xa606...019Cf</td>
+          <td style="font-family:monospace;font-size:11px;color:#94a3b8"><a href="https://app.morpho.org/arbitrum/vault/0xa60643c90A542A95026C0F1dbdB0615fF42019Cf/mev-capital-usdc" target="_blank" style="color: white;">0xa606...019Cf</a></td>
           <td style="color:#f87171;font-weight:600">xUSD (Stream Finance)</td>
           <td>Stream collapse → xUSD depeg to $0.30 → liquidation unprofitable</td>
           <td style="color:#f87171;font-weight:600">~$700K absolute</td>
         </tr>
         <tr>
           <td><span class="badge badge-blue">Ethereum</span></td>
-          <td style="font-family:monospace;font-size:11px;color:#94a3b8">0xd630...3a3D</td>
+          <td style="font-family:monospace;font-size:11px;color:#94a3b8"><a href="https://app.morpho.org/ethereum/vault/0xd63070114470f685b75B74D60EEc7c1113d33a3D/mev-capital-usdc" target="_blank" style="color: white;">(0xd630...3a3D)</a><a><a href="https://app.morpho.org/ethereum/market/0x0f9563442d64ab3bd3bcb27058db0b0d4046a4c46f0acd811dacae9551d2b129/sdeusd-usdc" target="_blank" style="color: white;">(0x0f95...b129)</a></a></td>
           <td style="color:#f87171;font-weight:600">sdeUSD (Elixir)</td>
           <td>Elixir retired deUSD → 98% value loss → bad debt on-chain</td>
           <td style="color:#f87171;font-weight:600">~3.6% share price haircut</td>
@@ -184,7 +185,8 @@
 
     <div class="slabel">Key Finding</div>
     <div class="card card-blue">
-      <p>Both failures share the same root pattern: <strong style="color:#818cf8">exotic stablecoin collaterals with insufficient secondary market liquidity</strong> were whitelisted in curator supply queues without adequate exit plans or liquidity depth requirements. When the depegs occurred, liquidations were either unprofitable or impossible at any meaningful recovery rate. This is a curator risk parameter failure, not a protocol failure.</p>
+      <p>Both failures share the same root cause: <strong style="color:#818cf8">exotic stablecoin collaterals that faced insufficient secondary market liquidity</strong> were whitelisted in curator supply queues without adequate exit plans or liquidity. When the depegs occurred, liquidations were either unprofitable or impossible at any meaningful recovery rate.</p>
+      <p>Important, even though obvious, to note is that this is a curator risk parameter failure, not a protocol failure.</p>
     </div>
   </div>
 
@@ -195,15 +197,16 @@
     <table>
       <thead><tr><th>Metric</th><th>Source</th><th>What to Look For</th><th>Cadence</th></tr></thead>
       <tbody>
-        <tr><td style="color:#f1f5f9;font-weight:600">Oracle Heartbeats</td><td>On-chain / Chainlink</td><td>Stale price feed or reporting &lt;$1.00 for collateral token</td><td>Real-time</td></tr>
-        <tr><td style="color:#f1f5f9;font-weight:600">badDebtAssets (Liquidate event)</td><td>Dune / RPC</td><td>Non-zero value emitted — confirms bad debt realized</td><td>Real-time</td></tr>
+        <tr><td style="color:#f1f5f9;font-weight:600">Oracle Heartbeats</td><td>On-chain / Chainlink / Others</td><td>Stale price feed or reporting &lt;$1.00 for collateral token</td><td>Real-time</td></tr>
+        <tr><td style="color:#f1f5f9;font-weight:600">badDebtAssets (Liquidate event)</td><td>Dune / RPC</td><td>Non-zero value emitted - confirms bad debt realized</td><td>Real-time</td></tr>
         <tr><td style="color:#f1f5f9;font-weight:600">Vault Share Price</td><td>convertToAssets(1e18)</td><td>Drop vs. previous block = realized loss socializing</td><td>Real-time</td></tr>
         <tr><td style="color:#f1f5f9;font-weight:600">Vault Utilization</td><td>Morpho API / Dune</td><td>&gt;95% utilization in healthy markets signals panic withdrawal crunch</td><td>Real-time</td></tr>
         <tr><td style="color:#f1f5f9;font-weight:600">Collateral Token Price</td><td>DEX / Chainlink</td><td>Depeg below $0.98 for &gt;5 blocks → P1 alert trigger</td><td>Real-time</td></tr>
         <tr><td style="color:#f1f5f9;font-weight:600">Liquidation Queue Depth</td><td>On-chain</td><td>Positions eligible for liquidation but not yet taken = at-risk exposure</td><td>Near real-time</td></tr>
         <tr><td style="color:#f1f5f9;font-weight:600">Gas Price</td><td>ETH Gas tracker</td><td>&gt;300 gwei → liquidation bots may pause, increasing bad debt risk</td><td>Real-time</td></tr>
         <tr><td style="color:#f1f5f9;font-weight:600">Withdrawal Volume</td><td>Morpho API</td><td>Spike in withdrawals → monitor for healthy market liquidity crunch</td><td>Near real-time</td></tr>
-        <tr><td style="color:#f1f5f9;font-weight:600">BTC/ETH Price</td><td>CEX feed</td><td">Macro context: &gt;10% drop → elevated DeFi stress event likely</td><td>Real-time</td></tr>
+        <tr><td style="color:#f1f5f9;font-weight:600">BTC/ETH Price</td><td>Tradingview feeds</td><td>Macro context: &gt;10% drop → elevated DeFi stress event likely</td><td>Real-time</td></tr>
+        <tr><td style="color:#f1f5f9;font-weight:600">L2 -> L1 Bridge Volume</td><td>Dune</td><td>Inflows and outflows to/from L2s to Eth mainnet</td><td>Near real-time</td></tr>      
       </tbody>
     </table>
 
@@ -211,10 +214,10 @@
     <div class="card card-red">
       <p><strong style="color:#f87171">Watch simultaneously:</strong></p>
       <ul class="plain">
-        <li><strong>Oracle feed for affected collateral</strong> — is xUSD / sdeUSD still reporting $1.00 or depegged? A stale oracle at $1.00 while spot is $0.30 means liquidators cannot profit → bad debt accumulates silently.</li>
-        <li><strong>badDebtAssets in Liquidate events</strong> — query Dune or subscribe via RPC to MorphoBlue_evt_Liquidate filtered by vault's market IDs. Any non-zero value is a confirmed loss event.</li>
-        <li><strong>convertToAssets(1e18) on vault contract</strong> — this is the single clearest signal of realized bad debt in Vault V1. A drop vs. the prior day's value = loss has been socialized to depositors.</li>
-        <li><strong>Withdrawal queue + utilization</strong> — high gas + falling share price can trigger panic withdrawals. If utilization in healthy markets hits &gt;95%, new withdrawals will fail, compounding user panic.</li>
+        <li><strong>Oracle feed for affected collateral</strong> - is xUSD / sdeUSD still reporting $1.00 or depegged? A stale oracle at $1.00 while spot is $0.30 means liquidators cannot profit → bad debt accumulates silently.</li>
+        <li><strong>badDebtAssets in Liquidate events</strong> - query Dune or query via RPC to MorphoBlue_evt_Liquidate filtered by vault's market IDs. Any non-zero value is a confirmed loss event.</li>
+        <li><strong>convertToAssets(1e18) on vault contract</strong> - this is the single clearest signal of realized bad debt in Vault V1. A drop vs. the prior day's value = loss has been socialized to depositors.</li>
+        <li><strong>Withdrawal queue + utilization</strong> - high gas + falling share price can trigger panic withdrawals. If utilization in healthy markets hits &gt;95%, new withdrawals will fail, compounding user panic.</li>
       </ul>
     </div>
 
@@ -243,7 +246,7 @@
               <li><strong>Isolate:</strong> Confirm MEV Capital has removed xUSD and sdeUSD markets from vault supply queues. No new deposits should flow into bad debt markets. <em>Status on Oct 10: CONFIRMED.</em></li>
               <li><strong>Quantify:</strong> Run Dune query to confirm exact badDebtAssets values. Calculate % haircut per vault (ETH: 3.6%, ARB: ~$700K / vault TVL).</li>
               <li><strong>Notify:</strong> Send P0 Telegram to MEV Capital ops. Alert internal Risk + Product channels. If share price hasn't yet updated on the front end, request curator to pause deposit UI to prevent new users entering at stale valuation.</li>
-              <li><strong>Triage:</strong> Confirm no contagion to other vaults — check that healthy markets (WBTC/USDC, wstETH/USDC) are unaffected.</li>
+              <li><strong>Triage:</strong> Confirm no contagion to other vaults - check that healthy markets (WBTC/USDC, wstETH/USDC) are unaffected.</li>
             </ul>
           </div>
         </div>
@@ -261,7 +264,7 @@
             <ul>
               <li><strong>Internal brief:</strong> Bring Product and Eng up to speed. Discuss whether "Asset Injection" (direct supply to market on vault's behalf to restore share price) is feasible and appropriate. Per Tutorials V1/Bad Debt, this is a valid recovery path.</li>
               <li><strong>Curator stance:</strong> Confirm with MEV Capital: will they seek Asset Injection to restore share price, or socialize losses? Oct 10 outcome: socialized loss, coordinating off-chain recovery with Elixir/Stream Finance.</li>
-              <li><strong>Draft depositor comms:</strong> Prepare a clear, factual statement — what happened, why, what the loss is, and what is being done. Await MEV Capital approval before publishing.</li>
+              <li><strong>Draft depositor comms:</strong> Prepare a clear, factual statement - what happened, why, what the loss is, and what is being done. Await MEV Capital approval before publishing.</li>
               <li><strong>Monitor withdrawal queue:</strong> Do NOT pause withdrawals unless protocol safety is at risk. Exiting users should take their fair haircut based on current share price.</li>
             </ul>
           </div>
@@ -279,9 +282,9 @@
           <div class="tl-desc">
             <ul>
               <li><strong>Post-mortem published:</strong> Acknowledge specific market failures (xUSD / sdeUSD) while clearly communicating that Market Isolation prevented broader contagion.</li>
-              <li><strong>Withdrawals remain open:</strong> Share price reflects bad debt. Users exiting now take their proportional haircut — this is correct Vault V1 behavior.</li>
+              <li><strong>Withdrawals remain open:</strong> Share price reflects bad debt. Users exiting now take their proportional haircut - this is correct Vault V1 behavior.</li>
               <li><strong>Off-chain recovery:</strong> Track progress of MEV Capital's coordination with Elixir compensation program and Stream Finance. Report status to internal stakeholders.</li>
-              <li><strong>Exec briefing sent:</strong> Short summary email to leadership (see Curator Comms tab) — TL;DR, impact, and recommendation.</li>
+              <li><strong>Exec briefing sent:</strong> Short summary email to leadership (see Curator Comms tab) - TL;DR, impact, and recommendation.</li>
             </ul>
           </div>
         </div>
@@ -303,7 +306,7 @@
       </div>
       <div class="card">
         <strong style="color:#818cf8">Monitoring (Internal)</strong>
-        <p style="margin-top:8px">Add a <strong>Dune dashboard tracking badDebtAssets &gt; 0 events</strong> across all Morpho Blue markets on Ethereum and Arbitrum, updated every 5 minutes, with Telegram webhook integration for on-call rotation.</p>
+        <p style="margin-top:8px">Add a <strong>Dune dashboard tracking badDebtAssets &gt; 0 events</strong> across all Morpho Blue markets on Ethereum and Arbitrum, updated every 5-10 minutes, with webhook integration (e.g. Telegram).</p>
       </div>
       <div class="card">
         <strong style="color:#818cf8">Onboarding (Process)</strong>
@@ -311,14 +314,14 @@
       </div>
     </div>
 
-    <div class="slabel">Recommendation to Curator: Handling the Bad Debt</div>
+    <div class="slabel">Recommendation: Handling the Bad Debt</div>
     <div class="card card-amber">
       <ul class="plain">
-        <li><strong>Do not bail out with DAO funds</strong> — this would create moral hazard for future curators. Losses must be socialized to vault depositors as designed.</li>
-        <li><strong>Asset Injection path</strong> — if MEV Capital chooses to restore share price (good faith recovery), they can supply assets directly to the market on the vault's behalf. This is supported by Morpho's V1 bad debt tutorials and is the cleanest UX outcome.</li>
-        <li><strong>Withdrawals stay open</strong> — preventing withdrawals would be more damaging than the loss itself. Trust in protocol mechanics must be preserved.</li>
-        <li><strong>Off-chain coordination with Elixir/Stream</strong> — pursue compensation programs aggressively but do not promise depositors recovery until terms are confirmed in writing.</li>
-        <li><strong>Public comms framing</strong> — lead with Market Isolation success, not the loss. The story is: "Morpho's design worked. Two exotic collaterals failed. The protocol and all other vaults are unaffected."</li>
+        <li><strong>Do not bail out with DAO funds</strong> - this would create moral hazard for future curators. Losses must be socialized to vault depositors as designed.</li>
+        <li><strong>Asset Injection path</strong> - if MEV Capital chooses to restore share price (good faith recovery), they can supply assets directly to the market on the vault's behalf. This is supported by Morpho's V1 bad debt tutorials and is the cleanest UX outcome.</li>
+        <li><strong>Withdrawals stay open</strong> - preventing withdrawals would be more damaging than the loss itself. Trust in protocol mechanics must be preserved.</li>
+        <li><strong>Off-chain coordination with Elixir/Stream</strong> - pursue compensation programs aggressively but do not promise depositors recovery until terms are confirmed in writing.</li>
+        <li><strong>Public comms framing</strong> - lead with Market Isolation success, not the loss. The story is: "Morpho's design worked. Two exotic collaterals failed. The protocol and all other vaults are unaffected."</li>
       </ul>
     </div>
   </div>
@@ -326,41 +329,79 @@
   <!-- ═══════════════════════════════════════════════════ COMMS -->
   <div id="comms" class="panel">
 
-    <div class="slabel">Telegram — MEV Capital Ops (P0 Alert)</div>
+    <div class="slabel">Telegram - MEV Capital Ops (P0 Alert)</div>
     <div class="comms-block">
-      <div class="comms-label">Telegram · Sent ~Oct 10 2025, within 15 min of detection</div>
-      <p><strong>🚨 URGENT / Bad Debt Realization — MEV Capital USDC Vaults</strong></p>
-      <br/>
-      <p>We've detected realized bad debt in two of your USDC vaults:</p>
-      <p>• <strong>ARB Vault</strong> (0xa606...019Cf) — ~$700K loss from xUSD (Stream Finance) depeg<br/>
-      • <strong>ETH Vault</strong> (0xd630...3a3D) — ~3.6% share price haircut from sdeUSD (Elixir) retirement</p>
-      <br/>
-      <p><strong>Action Required:</strong></p>
-      <p>1. Confirm removal of xUSD and sdeUSD from supply queues immediately<br/>
-      2. Decide: Asset Injection to restore share price, or socialize losses?<br/>
-      3. Approve draft depositor comms — we need to publish before secondary social noise starts<br/>
-      4. Do you have direct contact at Elixir / Stream for recovery coordination?</p>
-      <br/>
-      <p>Protocol isolation held — no other vaults affected. Standing by for your confirmation.</p>
+    <div class="comms-label">Telegram · Sent within 15 min of detection · Message 1</div>
+    <p><strong>🚨 URGENT / Bad Debt Realization - MEV Capital USDC Vault (Arbitrum)</strong></p>
+    <br/>
+    <p>We've detected realized bad debt in your ARB USDC vault:</p>
+    <p>• <strong>ARB Vault</strong> <a href="https://app.morpho.org/arbitrum/vault/0xa60643c90A542A95026C0F1dbdB0615fF42019Cf/mev-capital-usdc" target="_blank" style="color: white;">(0xa606...019Cf)</a> - ~$700K loss from xUSD (Stream Finance) depeg</p>
+    <br/>
+    <p><strong>Action Required:</strong></p>
+    <p>1. Confirm removal of xUSD from supply queue immediately<br/>
+          2. Decide: Asset Injection to restore share price, or socialize losses?<br/>
+          3. Approve draft depositor comms - we need to publish before secondary social noise starts<br/>
+          4. Do you have a direct contact at Stream Finance for recovery coordination?</p>
+    <br/>
+    <p>Protocol isolation held - no other vaults affected. Standing by for your confirmation.</p>
     </div>
 
-    <div class="slabel">Internal Executive Briefing — Email</div>
+    <br/><br/>
+
     <div class="comms-block">
-      <div class="comms-label">Email · To: Exec / Leadership · Sent within 60 min</div>
-      <p><strong>Subject: Incident Summary — MEV Capital xUSD/sdeUSD Bad Debt · Oct 10 2025</strong></p>
-      <br/>
-      <p><strong>TL;DR:</strong> Flash crash triggered depegs in two exotic stablecoins (xUSD, sdeUSD) used as collateral in MEV Capital USDC vaults. Estimated total loss ~$1.3M. Protocol functionality and market isolation are intact.</p>
-      <br/>
-      <p><strong>Impact:</strong><br/>
-      • <strong>Users:</strong> Vault depositors take a ~3.6% haircut on ETH vault; ARB vault ~$700K absolute loss (~12% of exposure)<br/>
-      • <strong>Protocol:</strong> No bad debt at protocol level — loss socialized to vault depositors as designed<br/>
-      • <strong>Reputation:</strong> MEV Capital marketed these vaults as low-risk; collateral choices are now under scrutiny</p>
-      <br/>
-      <p><strong>Recommendation:</strong><br/>
-      Support MEV Capital in off-chain recovery efforts (Elixir compensation program) but do not commit DAO funds — this would set a moral hazard precedent. Curator risk decisions are the curator's responsibility. Focus external comms on Market Isolation success, not the loss quantum. Use this event to accelerate the collateral due diligence checklist rollout.</p>
-      <br/>
-      <p>Full post-mortem to follow within 24 hours. Standing by for questions.</p>
+    <div class="comms-label">Telegram · Sent within 15 min of detection · Message 2</div>
+    <p><strong>🚨 URGENT / Bad Debt Realization - MEV Capital USDC Vault (Ethereum)</strong></p>
+    <br/>
+    <p>We've detected a bad debt event in your ETH USDC vault:</p>
+    <p>• <strong>ETH Vault</strong> <a href="https://app.morpho.org/ethereum/vault/0xd63070114470f685b75B74D60EEc7c1113d33a3D/mev-capital-usdc" target="_blank" style="color: white;">(0xd630...3a3D)</a> - ~3.6% share price haircut from sdeUSD (Elixir) retirement. Elixir retired deUSD (declaring it worthless/no value) and sunset the token.
+
+</p>
+    <br/>
+    <p><strong>Action Required:</strong></p>
+    <p>1. Confirm removal of sdeUSD from supply queue immediately<br/>
+          2. Decide: Asset Injection to restore share price, or socialize losses?<br/>
+          3. Approve draft depositor comms - we need to publish before secondary social noise starts<br/>
+          4. Do you have a direct contact at Elixir for recovery coordination?</p>
+    <br/>
+    <p>Protocol isolation held - no other vaults affected. Standing by for your confirmation.</p>
     </div>
+
+    <div class="slabel">Internal Executive Briefing - Email</div>
+    <div class="comms-block">
+  <div class="comms-label">Email · To: Exec / Leadership · Sent within 60 min · Email 1</div>
+    <p><strong>Subject: Incident Summary - MEV Capital xUSD Bad Debt</strong></p>
+    <br/>
+    <p><strong>TL;DR:</strong> A flash crash triggered a depeg in xUSD (Stream Finance), used as collateral in the MEV Capital ARB USDC vault <a href="https://app.morpho.org/arbitrum/vault/0xa60643c90A542A95026C0F1dbdB0615fF42019Cf/mev-capital-usdc" target="_blank" style="color: white;">(0xa606...019Cf)</a>. Estimated loss ~$700K (~12% of exposure). Protocol functionality and market isolation are intact.</p>
+    <br/>
+    <p><strong>Impact:</strong><br/>
+        • <strong>Users:</strong> ARB vault depositors face ~$700K absolute loss<br/>
+        • <strong>Protocol:</strong> No bad debt at protocol level - loss socialized to vault depositors as designed<br/>
+        • <strong>Reputation:</strong> MEV Capital marketed this vault as low-risk; xUSD collateral choice is now under scrutiny</p>
+    <br/>
+    <p><strong>Recommendation:</strong><br/>
+        Support MEV Capital in off-chain recovery efforts (Stream Finance coordination) but do not commit DAO funds - this would set a moral hazard precedent. Curator risk decisions are the curator's responsibility. Focus external comms on Market Isolation success, not the loss quantum. Use this event to accelerate the collateral due diligence checklist rollout.</p>
+    <br/>
+    <p>Full post-mortem to follow within 24 hours. Standing by for questions.</p>
+  </div>
+
+  <br/><br/>
+
+  <div class="comms-block">
+    <div class="comms-label">Email · To: Exec / Leadership · Sent within 60 min · Email 2</div>
+    <p><strong>Subject: Incident Summary - MEV Capital sdeUSD Bad Debt</strong></p>
+    <br/>
+    <p><strong>TL;DR:</strong> The retirement of sdeUSD (Elixir) caused a share price haircut in the MEV Capital ETH USDC vault <a href="https://app.morpho.org/ethereum/vault/0xd63070114470f685b75B74D60EEc7c1113d33a3D/mev-capital-usdc" target="_blank" style="color: white;">(0xd630...3a3D)</a>. Estimated loss ~3.6% of share price. Protocol functionality and market isolation are intact.</p>
+    <br/>
+    <p><strong>Impact:</strong><br/>
+        • <strong>Users:</strong> ETH vault depositors face a ~3.6% share price haircut<br/>
+        • <strong>Protocol:</strong> No bad debt at protocol level - loss socialized to vault depositors as designed<br/>
+        • <strong>Reputation:</strong> MEV Capital marketed this vault as low-risk; sdeUSD collateral choice is now under scrutiny</p>
+    <br/>
+    <p><strong>Recommendation:</strong><br/>
+        Support MEV Capital in off-chain recovery efforts (Elixir compensation program) but do not commit DAO funds - this would set a moral hazard precedent. Curator risk decisions are the curator's responsibility. Focus external comms on Market Isolation success, not the loss quantum. Use this event to accelerate the collateral due diligence checklist rollout.</p>
+    <br/>
+    <p>Full post-mortem to follow within 24 hours. Standing by for questions.</p>
+  </div>
 
     <div class="slabel">Information Flow by Stakeholder</div>
     <table>
@@ -379,7 +420,7 @@
   <!-- ═══════════════════════════════════════════════════ MARKETS -->
   <div id="markets" class="panel">
 
-    <div class="slabel">Realized Bad Debt — Affected Markets (Oct 10 – Nov 15 2025)</div>
+    <div class="slabel">Realized Bad Debt - Affected Markets (Oct 10 – Nov 15 2025)</div>
     <table>
       <thead><tr><th>Market</th><th>Collateral Type</th><th>Bad Debt (USD)</th><th>Event Date</th><th>Chain</th></tr></thead>
       <tbody>
@@ -397,13 +438,6 @@
           <td style="color:#94a3b8">Oct 10</td>
           <td><span class="badge badge-amber">Arbitrum + ETH</span></td>
         </tr>
-        <tr>
-          <td style="color:#a5b4fc;font-weight:600">PT-sUSDE/USDC</td>
-          <td>Pendle Principal Token</td>
-          <td style="color:#f87171;font-weight:600">$0.20M</td>
-          <td style="color:#94a3b8">Oct 19–30</td>
-          <td><span class="badge badge-blue">Ethereum</span></td>
-        </tr>
       </tbody>
     </table>
 
@@ -411,11 +445,10 @@
     <div style="margin-top:8px;margin-bottom:4px;">
       <div class="bar-row"><div class="bar-label">sUSDe/USDC</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#10b981"><span>$2.40M</span></div></div></div>
       <div class="bar-row"><div class="bar-label">xUSD / sdeUSD</div><div class="bar-track"><div class="bar-fill" style="width:37%;background:#6366f1"><span>~$0.85M</span></div></div></div>
-      <div class="bar-row"><div class="bar-label">PT-sUSDE</div><div class="bar-track"><div class="bar-fill" style="width:8%;background:#6366f1"><span>$0.20M</span></div></div></div>
     </div>
     <div class="legend">
       <span><span style="color:#10b981">■</span> sUSDe / Ethena</span>
-      <span><span style="color:#6366f1">■</span> Exotic / Elixir / Pendle</span>
+      <span><span style="color:#6366f1">■</span> Elixir</span>
     </div>
 
     <hr/>
@@ -424,7 +457,7 @@
     <div class="risk-card card-red">
       <div class="risk-title">
         <span class="risk-level" style="background:#f8717122;color:#f87171">🔴 High</span>
-        <span class="risk-name">sUSDe/USDC — Immediate Review Required</span>
+        <span class="risk-name">sUSDe/USDC - Immediate Review Required</span>
       </div>
       <p class="risk-body">$2.4M in a single Nov 15 cluster represents 55%+ of period losses. Ethena's sUSDe relies on delta-neutral funding; a funding rate reversal or redemption crunch causes rapid depeg. Recommend: review oracle freshness, LTV caps, consider supply cap reduction pending post-mortem.</p>
     </div>
@@ -432,17 +465,9 @@
     <div class="risk-card card-amber">
       <div class="risk-title">
         <span class="risk-level" style="background:#fb923c22;color:#fb923c">🟠 Medium-High</span>
-        <span class="risk-name">xUSD / sdeUSD — Oct 10 Root Cause</span>
+        <span class="risk-name">xUSD / sdeUSD - Oct 10 Root Cause</span>
       </div>
       <p class="risk-body">Direct cause of the Oct 10 incident. xUSD depegged to $0.30 (Stream Finance collapse); sdeUSD lost 98% of value (Elixir retirement). Both were low-liquidity, novel stablecoins without credible exit plans. These markets should be treated as a case study for mandatory collateral due diligence requirements going forward.</p>
-    </div>
-
-    <div class="risk-card" style="background:#1a2310;border:1px solid #a3e63544">
-      <div class="risk-title">
-        <span class="risk-level" style="background:#a3e63522;color:#a3e635">🟡 Lower</span>
-        <span class="risk-name">PT-sUSDE — Expected Tail Risk</span>
-      </div>
-      <p class="risk-body">Pendle PT markets carry inherent yield-token complexity. $0.20M across Oct 19–30 is within expected tail loss range for this asset class. Monitor supply caps but no immediate action required.</p>
     </div>
 
     <div class="risk-card card-blue">
@@ -450,14 +475,14 @@
         <span class="risk-level" style="background:#818cf822;color:#818cf8">📋 Systemic</span>
         <span class="risk-name">Cross-Market Pattern</span>
       </div>
-      <p class="risk-body">All losses trace to exotic or synthetic stablecoin collaterals — assets that appear stable but carry hidden liquidity and depeg risk. The protocol's liquidation infrastructure is tuned for volatile assets, not soft de-pegs where price moves are slow but deep. A protocol-level review of liquidation incentives for near-peg collaterals is warranted.</p>
+      <p class="risk-body">All losses trace to exotic or synthetic stablecoin collaterals - assets that appear stable but carry hidden liquidity and depeg risk. The protocol's liquidation infrastructure is tuned for volatile assets, not soft de-pegs where price moves are slow but deep.</p>
     </div>
   </div>
 
   <!-- ═══════════════════════════════════════════════════ SQL -->
   <div id="sql" class="panel">
 
-    <div class="slabel">Dune Query — Realized Bad Debt Events (Oct–Nov 2025)</div>
+    <div class="slabel">Dune Query - Realized Bad Debt Events (Oct–Nov 2025)</div>
     <div class="card" style="margin-bottom:14px;">
       <p><strong style="color:#f1f5f9">Purpose:</strong> Identify bad debt events for MEV Capital USDC vaults during the crash window by scanning <code style="color:#a5f3fc">MorphoBlue_evt_Liquidate</code> for non-zero <code style="color:#a5f3fc">badDebtAssets</code>, joined with market creation events to extract collateral token addresses (used to filter for xUSD, sdeUSD, and related markets).</p>
     </div>
@@ -495,28 +520,13 @@ ORDER BY b.evt_block_time DESC;</pre>
       <thead><tr><th>Field</th><th>Notes</th></tr></thead>
       <tbody>
         <tr><td style="color:#a5f3fc;font-family:monospace">badDebtAssets / 1e6</td><td>Normalizes raw on-chain units to human-readable USDC amount (6 decimal token)</td></tr>
-        <tr><td style="color:#a5f3fc;font-family:monospace">badDebtAssets > 0</td><td>Key filter — in a healthy liquidation this is zero. Non-zero = protocol absorbed a loss</td></tr>
-        <tr><td style="color:#a5f3fc;font-family:monospace">json_extract_scalar(...collateralToken)</td><td>Pulls collateral address from marketParams JSON — use this to identify xUSD / sdeUSD markets</td></tr>
-        <tr><td style="color:#a5f3fc;font-family:monospace">LEFT JOIN CreateMarket</td><td>Required to access marketParams — not available directly on the Liquidate event</td></tr>
-        <tr><td style="color:#a5f3fc;font-family:monospace">ORDER BY evt_block_time DESC</td><td>Most recent events first — useful for triage during a live incident</td></tr>
+        <tr><td style="color:#a5f3fc;font-family:monospace">badDebtAssets > 0</td><td>Key filter - in a healthy liquidation this is zero. Non-zero = protocol absorbed a loss</td></tr>
+        <tr><td style="color:#a5f3fc;font-family:monospace">json_extract_scalar(...collateralToken)</td><td>Pulls collateral address from marketParams JSON - use this to identify xUSD / sdeUSD markets</td></tr>
+        <tr><td style="color:#a5f3fc;font-family:monospace">LEFT JOIN CreateMarket</td><td>Required to access marketParams - not available directly on the Liquidate event</td></tr>
+        <tr><td style="color:#a5f3fc;font-family:monospace">ORDER BY evt_block_time DESC</td><td>Most recent events first - useful for triage during a live incident</td></tr>
       </tbody>
     </table>
 
-    <div class="slabel">Extension: Filter for Specific Vault Markets</div>
-<pre>-- Add this WHERE clause extension to filter only MEV Capital vault markets
--- Replace addresses with actual market IDs from vault supply queue
-
-AND b.market_id IN (
-  '0x...xUSD_market_id',
-  '0x...sdeUSD_market_id'
-)
-
--- Or filter by collateral token address directly:
-AND json_extract_scalar(b.marketParams, '$.collateralToken')
-    IN (
-      '0x...xUSD_token_address',
-      '0x...sdeUSD_token_address'
-    )</pre>
   </div>
 
 </div>
